@@ -23,7 +23,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,14 +38,13 @@ jobs:
             exit 1
           fi
 
-      - name: Check Cloudflare credentials presence
+      - name: Check Cloudflare token presence
         id: credentials
         continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
           test -n "${CLOUDFLARE_API_TOKEN:-}"
-          test -n "${CLOUDFLARE_ACCOUNT_ID:-}"
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -84,13 +82,7 @@ jobs:
             REASON="INVALID_WORKER_TARGET"
           elif [ "${{ steps.credentials.outcome }}" != "success" ]; then
             STATUS="failure"
-            if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
-              REASON="MISSING_CLOUDFLARE_API_TOKEN"
-            elif [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
-              REASON="MISSING_CLOUDFLARE_ACCOUNT_ID"
-            else
-              REASON="CLOUDFLARE_CREDENTIALS_INVALID"
-            fi
+            REASON="MISSING_CLOUDFLARE_API_TOKEN"
           elif [ "${{ steps.deploy.outcome }}" != "success" ]; then
             STATUS="failure"
             REASON="WRANGLER_DEPLOY_FAILED"
