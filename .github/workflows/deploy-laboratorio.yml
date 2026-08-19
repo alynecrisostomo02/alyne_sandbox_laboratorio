@@ -29,14 +29,24 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Confirm laboratory target
+        id: target
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
           grep -q '"name": "alyne-crisostomo-laboratorio"' wrangler.jsonc
           if grep -q '"name": "alyne-crisostomo-imoveis"' wrangler.jsonc; then
-            echo "Production worker detected. Aborting."
             exit 1
           fi
+
+      - name: Check Cloudflare credentials presence
+        id: credentials
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${CLOUDFLARE_API_TOKEN:-}"
+          test -n "${CLOUDFLARE_ACCOUNT_ID:-}"
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -57,6 +67,7 @@ jobs:
 
       - name: Deploy only to laboratory worker
         id: deploy
+        if: steps.target.outcome == 'success' && steps.credentials.outcome == 'success'
         continue-on-error: true
         run: pnpm exec wrangler deploy
 
@@ -66,8 +77,27 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p .deploy
+          STATUS="${{ steps.deploy.outcome }}"
+          REASON="NONE"
+          if [ "${{ steps.target.outcome }}" != "success" ]; then
+            STATUS="failure"
+            REASON="INVALID_WORKER_TARGET"
+          elif [ "${{ steps.credentials.outcome }}" != "success" ]; then
+            STATUS="failure"
+            if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
+              REASON="MISSING_CLOUDFLARE_API_TOKEN"
+            elif [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+              REASON="MISSING_CLOUDFLARE_ACCOUNT_ID"
+            else
+              REASON="CLOUDFLARE_CREDENTIALS_INVALID"
+            fi
+          elif [ "${{ steps.deploy.outcome }}" != "success" ]; then
+            STATUS="failure"
+            REASON="WRANGLER_DEPLOY_FAILED"
+          fi
           cat > .deploy/laboratorio-status.txt <<EOF
-          status=${{ steps.deploy.outcome }}
+          status=${STATUS}
+          reason=${REASON}
           source_commit=${GITHUB_SHA}
           worker=alyne-crisostomo-laboratorio
           url=https://alyne-crisostomo-laboratorio.grand-crab.workers.dev
@@ -79,5 +109,5 @@ jobs:
           git push origin HEAD:main
 
       - name: Fail workflow if deploy failed
-        if: steps.deploy.outcome != 'success'
+        if: steps.target.outcome != 'success' || steps.credentials.outcome != 'success' || steps.deploy.outcome != 'success'
         run: exit 1
