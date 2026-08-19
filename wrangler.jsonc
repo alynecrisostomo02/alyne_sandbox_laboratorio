@@ -1,0 +1,51 @@
+﻿{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "alyne-crisostomo-laboratorio",
+  "main": "vinext/server/fetch-handler",
+  "compatibility_date": "2026-08-03",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "CATALOG_DB",
+      "database_name": "alyne-catalogo-laboratorio",
+      "database_id": "2dbe2bd6-19c4-4e35-808c-39d2bc4d0871",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "PROPERTY_IMAGES",
+      "id": "996888a273c44fd39cffe80c8d8097a7"
+    }
+  ],
+  "secrets": {
+    "required": ["GEMINI_API_KEY"]
+  },
+  "ratelimits": [
+    {
+      "name": "ADMIN_LOGIN_RATE_LIMITER",
+      "namespace_id": "26081201",
+      "simple": {
+        "limit": 8,
+        "period": 60
+      }
+    },
+    {
+      "name": "LUX_RATE_LIMITER",
+      "namespace_id": "26081001",
+      "simple": {
+        "limit": 12,
+        "period": 60
+      }
+    }
+  ],
+  "assets": {
+    "directory": "dist/client",
+    "not_found_handling": "none",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  }
+}
+

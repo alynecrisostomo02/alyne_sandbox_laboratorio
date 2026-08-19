@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /
+
+# Ambiente de laboratório: não indexar.
+Disallow: /admin

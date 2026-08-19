@@ -1,0 +1,15 @@
+﻿node_modules/
+.next/
+.vinext/
+dist/
+.wrangler/
+
+.env
+.env.*
+.dev.vars
+
+*.zip
+*.log
+
+backup-assistente-crisostomo/
+ai-studio-project-copy/
