@@ -130,15 +130,17 @@ export default function SiteApp() {
     return <Home properties={properties} favorites={favorites} onFavorite={toggleFavorite} />;
   }, [location, favorites, properties]);
 
+  const isAssistant = location.path === "/assistente";
+
   return (
     <>
       <a className="skip-link" href="#main-content" onClick={skipToMainContent}>
         Pular para o conteúdo
       </a>
-      <Header route={location.path} />
+      {isAssistant ? null : <Header route={location.path} />}
       <div id="main-content" tabIndex={-1}>{content}</div>
-      {location.path === "/assistente" ? null : <Footer />}
-      {location.path === "/assistente" ? null : <AssistantLauncher />}
+      {isAssistant ? null : <Footer />}
+      {isAssistant ? null : <AssistantLauncher />}
       <div className={`toast ${toast ? "show" : ""}`} role="status" aria-live="polite">
         {toast}
       </div>
