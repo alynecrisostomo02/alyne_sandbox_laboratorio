@@ -1,5 +1,5 @@
-status=failure
-reason=MISSING_CLOUDFLARE_API_TOKEN
-source_commit=fa8f8d42d5cc2eb29d3473cdc5e0db137d6a4df0
+status=success
+reason=NONE
+source_commit=7ff5adf3339dd2f85c9ed5065052068d4744dab0
 worker=alyne-crisostomo-laboratorio
 url=https://alyne-crisostomo-laboratorio.grand-crab.workers.dev
