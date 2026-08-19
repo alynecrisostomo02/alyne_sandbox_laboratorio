@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   deploy:
@@ -56,4 +56,28 @@ jobs:
         run: pnpm run build
 
       - name: Deploy only to laboratory worker
+        id: deploy
+        continue-on-error: true
         run: pnpm exec wrangler deploy
+
+      - name: Record deployment status
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .deploy
+          cat > .deploy/laboratorio-status.txt <<EOF
+          status=${{ steps.deploy.outcome }}
+          source_commit=${GITHUB_SHA}
+          worker=alyne-crisostomo-laboratorio
+          url=https://alyne-crisostomo-laboratorio.grand-crab.workers.dev
+          EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .deploy/laboratorio-status.txt
+          git commit -m "chore: registrar status do deploy laboratorio" || true
+          git push origin HEAD:main
+
+      - name: Fail workflow if deploy failed
+        if: steps.deploy.outcome != 'success'
+        run: exit 1
