@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { typeLabels } from "../properties";
 import { currency, navigate, whatsappFor } from "../utils";
 import { hasNumericPrice, isRecommendableProperty, propertyBedroomTotal, propertyHasFeature } from "../propertyStatus";
@@ -29,8 +29,15 @@ function matchesLocationPreference(property, preference) {
 
 export default function Recommender({ properties, favorites, onFavorite }) {
   const [step, setStep] = useState(0);
+  const [transitionDirection, setTransitionDirection] = useState("forward");
+  const [isStepExiting, setIsStepExiting] = useState(false);
   const [answers, setAnswers] = useState(initialAnswers);
   const [finished, setFinished] = useState(false);
+  const stepTimerRef = useRef(null);
+
+  useEffect(() => () => {
+    if (stepTimerRef.current) window.clearTimeout(stepTimerRef.current);
+  }, []);
 
   const questions = [
     {
@@ -124,7 +131,21 @@ export default function Recommender({ properties, favorites, onFavorite }) {
     };
   }, [answers, finished, properties]);
 
+  function changeStep(nextStep) {
+    const boundedStep = Math.max(0, Math.min(questions.length - 1, nextStep));
+    if (boundedStep === step || isStepExiting) return;
+    setTransitionDirection(boundedStep > step ? "forward" : "back");
+    setIsStepExiting(true);
+    if (stepTimerRef.current) window.clearTimeout(stepTimerRef.current);
+    stepTimerRef.current = window.setTimeout(() => {
+      setStep(boundedStep);
+      setIsStepExiting(false);
+      stepTimerRef.current = null;
+    }, 180);
+  }
+
   function choose(value) {
+    if (isStepExiting) return;
     const question = questions[step];
     if (question.multi) {
       setAnswers((current) => ({
@@ -136,7 +157,7 @@ export default function Recommender({ properties, favorites, onFavorite }) {
       return;
     }
     setAnswers((current) => ({ ...current, [question.key]: value }));
-    if (step < questions.length - 1) setStep((current) => current + 1);
+    if (step < questions.length - 1) changeStep(step + 1);
   }
 
   function complete() {
@@ -145,8 +166,11 @@ export default function Recommender({ properties, favorites, onFavorite }) {
   }
 
   function restart() {
+    if (stepTimerRef.current) window.clearTimeout(stepTimerRef.current);
     setAnswers(initialAnswers);
     setStep(0);
+    setTransitionDirection("forward");
+    setIsStepExiting(false);
     setFinished(false);
   }
 
@@ -236,7 +260,10 @@ export default function Recommender({ properties, favorites, onFavorite }) {
           <div className="progress-track" role="progressbar" aria-label="Progresso da busca guiada" aria-valuemin="1" aria-valuemax={questions.length} aria-valuenow={step + 1}>
             <span style={{ width: `${((step + 1) / questions.length) * 100}%` }} />
           </div>
-          <div className="question-card">
+          <div
+            key={step}
+            className={`question-card assistant-step-transition assistant-step-${transitionDirection} ${isStepExiting ? "assistant-step-exit" : "assistant-step-enter"}`}
+          >
             <span className="question-step">0{step + 1}</span>
             <h2>{current.title}</h2>
             <p>{current.hint}</p>
@@ -250,6 +277,7 @@ export default function Recommender({ properties, favorites, onFavorite }) {
                     className={active ? "selected" : ""}
                     aria-pressed={active}
                     onClick={() => choose(value)}
+                    disabled={isStepExiting}
                   >
                     <span>{label}</span>
                     <i><Icon name={active ? "check" : "arrow"} size={17} /></i>
@@ -258,7 +286,7 @@ export default function Recommender({ properties, favorites, onFavorite }) {
               })}
             </div>
             <div className="question-actions">
-              <button className="button button-ghost" type="button" disabled={step === 0} onClick={() => setStep((currentStep) => Math.max(0, currentStep - 1))}>
+              <button className="button button-ghost" type="button" disabled={step === 0 || isStepExiting} onClick={() => changeStep(step - 1)}>
                 Voltar
               </button>
               {current.multi ? (
