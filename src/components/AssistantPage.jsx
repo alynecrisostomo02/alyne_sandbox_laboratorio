@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { whatsappUrl } from "../config";
 import { navigate } from "../utils";
 import styles from "./AssistantPage.module.css";
@@ -83,8 +83,9 @@ function ChoiceCard({ selected, title, description, onClick, compact = false }) 
   return (
     <button
       type="button"
-      className={`${styles.choice} ${selected ? styles.choiceSelected : ""} ${compact ? styles.choiceCompact : ""}`}
+      className={`${styles.choice} assistant-theme-choice ${selected ? styles.choiceSelected : ""} ${compact ? styles.choiceCompact : ""}`}
       onClick={onClick}
+      aria-pressed={selected}
     >
       <span className={styles.choiceTitle}>{title}</span>
       {description ? <small>{description}</small> : null}
@@ -105,11 +106,20 @@ function StepHeading({ number, eyebrow, title, description }) {
 
 export default function AssistantPage() {
   const [step, setStep] = useState(1);
+  const [theme, setTheme] = useState("transition");
+  const [transitionDirection, setTransitionDirection] = useState("forward");
+  const [isStepExiting, setIsStepExiting] = useState(false);
   const [form, setForm] = useState(INITIAL_FORM);
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState("");
+  const [isResultOpen, setIsResultOpen] = useState(false);
   const [resultSource, setResultSource] = useState("");
   const [copied, setCopied] = useState(false);
+  const stepTimerRef = useRef(null);
+
+  useEffect(() => () => {
+    if (stepTimerRef.current) window.clearTimeout(stepTimerRef.current);
+  }, []);
 
   const regionLabel = useMemo(
     () => form.region === "Outro bairro" && form.customRegion.trim() ? form.customRegion.trim() : form.region,
@@ -131,10 +141,27 @@ export default function AssistantPage() {
     }));
   }
 
+  function changeStep(nextStep) {
+    const boundedStep = Math.max(1, Math.min(TOTAL_STEPS, nextStep));
+    if (boundedStep === step || isStepExiting) return;
+    setTransitionDirection(boundedStep > step ? "forward" : "back");
+    setIsStepExiting(true);
+    if (stepTimerRef.current) window.clearTimeout(stepTimerRef.current);
+    stepTimerRef.current = window.setTimeout(() => {
+      setStep(boundedStep);
+      setIsStepExiting(false);
+      stepTimerRef.current = null;
+    }, 180);
+  }
+
   function restart() {
+    if (stepTimerRef.current) window.clearTimeout(stepTimerRef.current);
     setStep(1);
+    setTransitionDirection("forward");
+    setIsStepExiting(false);
     setForm(INITIAL_FORM);
     setResult("");
+    setIsResultOpen(false);
     setResultSource("");
     setCopied(false);
   }
@@ -166,9 +193,11 @@ export default function AssistantPage() {
       const data = await response.json();
       if (!response.ok || !data?.message) throw new Error("FORMAT_FAILED");
       setResult(data.message);
+      setIsResultOpen(true);
       setResultSource(data.source || "fallback");
     } catch {
       setResult(buildLocalFallback(form));
+      setIsResultOpen(true);
       setResultSource("fallback");
     } finally {
       setIsGenerating(false);
@@ -186,7 +215,7 @@ export default function AssistantPage() {
   }
 
   return (
-    <main className={styles.page}>
+    <main className={`${styles.page} assistant-theme-root`} data-assistant-theme={theme}>
       <div className={styles.ambient} aria-hidden="true">
         <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
           <g className={styles.architecture}>
@@ -203,38 +232,45 @@ export default function AssistantPage() {
         </svg>
       </div>
 
-      <header className={styles.topbar}>
-        <button type="button" className={styles.backButton} onClick={() => navigate("#/")}>← Voltar ao site</button>
-        <div className={styles.brandBlock}>
+      <header className={`${styles.topbar} assistant-theme-topbar`}>
+        <button type="button" className={`${styles.backButton} assistant-theme-back`} onClick={() => navigate("#/")}>← Voltar ao site</button>
+        <div className={`${styles.brandBlock} assistant-theme-brand`}>
           <span className={styles.brandMark}>AC</span>
           <div>
             <strong>Assistente Crisóstomo</strong>
             <small>Busca Guiada • Redenção, Pará</small>
           </div>
         </div>
-        <span className={styles.status}><i /> Atendimento guiado</span>
+        <div className="assistant-theme-actions">
+          <span className={styles.status}><i /> Atendimento guiado</span>
+          <div className="assistant-theme-switcher" role="group" aria-label="Tema da Assistente">
+            <button type="button" className={theme === "botanical" ? "is-active" : ""} onClick={() => setTheme("botanical")} aria-pressed={theme === "botanical"} aria-label="Jardim Botânico" title="Jardim Botânico">☀</button>
+            <button type="button" className={theme === "transition" ? "is-active" : ""} onClick={() => setTheme("transition")} aria-pressed={theme === "transition"} aria-label="Botânico para Noturno" title="Botânico para Noturno">✦</button>
+            <button type="button" className={theme === "night" ? "is-active" : ""} onClick={() => setTheme("night")} aria-pressed={theme === "night"} aria-label="Jardim Noturno" title="Jardim Noturno">☾</button>
+          </div>
+        </div>
       </header>
 
-      <section className={styles.shell}>
+      <section className={`${styles.shell} assistant-theme-shell`}>
         <i className={`${styles.corner} ${styles.cornerTl}`} aria-hidden="true" />
         <i className={`${styles.corner} ${styles.cornerTr}`} aria-hidden="true" />
         <i className={`${styles.corner} ${styles.cornerBl}`} aria-hidden="true" />
         <i className={`${styles.corner} ${styles.cornerBr}`} aria-hidden="true" />
 
-        <div className={styles.reception}>
+        <div className={`${styles.reception} assistant-theme-reception`}>
           <div>
             <span className={styles.kicker}>ATENDIMENTO PERSONALIZADO</span>
             <h1>Vamos organizar o imóvel que você procura.</h1>
             <p>Escolha suas preferências com calma. No final, a Assistente organiza tudo em uma mensagem pronta para falar diretamente com a Alyne.</p>
           </div>
-          <div className={styles.receptionBadge}>
+          <div className={`${styles.receptionBadge} assistant-theme-badge`}>
             <span>IA</span>
             <strong>só no final</strong>
             <small>para organizar sua mensagem</small>
           </div>
         </div>
 
-        <div className={styles.progressHeader}>
+        <div className={`${styles.progressHeader} assistant-theme-progress`}>
           <div className={styles.progressCopy}>
             <span className={styles.compass}>◇</span>
             <div>
@@ -247,16 +283,20 @@ export default function AssistantPage() {
               <button
                 key={index}
                 type="button"
-                className={`${styles.dot} ${step === index + 1 ? styles.dotActive : ""} ${step > index + 1 ? styles.dotDone : ""}`}
-                onClick={() => setStep(index + 1)}
+                className={`${styles.dot} assistant-theme-dot ${step === index + 1 ? styles.dotActive : ""} ${step > index + 1 ? styles.dotDone : ""}`}
+                onClick={() => changeStep(index + 1)}
                 aria-label={`Ir para o passo ${index + 1}`}
+                aria-current={step === index + 1 ? "step" : undefined}
               />
             ))}
           </div>
         </div>
 
         <div className={styles.stepViewport}>
-          <section key={step} className={styles.stepContent}>
+          <section
+            key={step}
+            className={`${styles.stepContent} assistant-step-transition assistant-step-${transitionDirection} ${isStepExiting ? "assistant-step-exit" : "assistant-step-enter"}`}
+          >
             {step === 1 ? (
               <>
                 <StepHeading number={1} eyebrow="Objetivo & Categoria" title="O que você deseja realizar em Redenção?" description="Selecione a finalidade e a categoria principal do imóvel pretendido." />
@@ -288,7 +328,7 @@ export default function AssistantPage() {
                   ))}
                 </div>
                 {form.region === "Outro bairro" ? (
-                  <div className={styles.inputGroup}>
+                  <div className={`${styles.inputGroup} assistant-theme-input`}>
                     <label htmlFor="custom-region">Informe o bairro ou ponto de referência</label>
                     <input id="custom-region" value={form.customRegion} onChange={(event) => patch("customRegion", event.target.value)} placeholder="Ex: próximo à Avenida Brasil, Planalto..." maxLength={120} />
                   </div>
@@ -342,16 +382,16 @@ export default function AssistantPage() {
               <>
                 <StepHeading number={6} eyebrow="Conclusão & Identificação" title="Tudo quase pronto para falar com a Alyne!" description="Informe seu nome e qualquer detalhe adicional para personalizar seu atendimento." />
                 <div className={styles.finalGrid}>
-                  <div className={styles.inputGroup}>
+                  <div className={`${styles.inputGroup} assistant-theme-input`}>
                     <label htmlFor="client-name">Seu nome</label>
                     <input id="client-name" value={form.clientName} onChange={(event) => patch("clientName", event.target.value)} placeholder="Ex: Lucas Andrade" maxLength={120} />
                   </div>
-                  <div className={styles.inputGroup}>
+                  <div className={`${styles.inputGroup} assistant-theme-input`}>
                     <label htmlFor="client-notes">Observações ou requisitos especiais <span>opcional</span></label>
                     <textarea id="client-notes" value={form.notes} onChange={(event) => patch("notes", event.target.value)} placeholder="Ex: procuro casa térrea, espaço para pet, fácil acesso..." rows={4} maxLength={1200} />
                   </div>
                 </div>
-                <div className={styles.summaryPreview}>
+                <div className={`${styles.summaryPreview} assistant-theme-summary`}>
                   <strong>✓ Resumo das escolhas</strong>
                   <p><b>{form.purpose}</b> ({form.propertyType}) em <b>{regionLabel}</b> • Orçamento: <b>{form.budget}</b> • {form.bedrooms} • {form.suites} • Garagem: {form.garage}</p>
                 </div>
@@ -360,10 +400,10 @@ export default function AssistantPage() {
           </section>
         </div>
 
-        <footer className={styles.navigation}>
-          <button type="button" className={styles.secondaryButton} onClick={() => setStep((current) => Math.max(1, current - 1))} disabled={step === 1}>← Voltar</button>
+        <footer className={`${styles.navigation} assistant-theme-navigation`}>
+          <button type="button" className={`${styles.secondaryButton} assistant-theme-secondary`} onClick={() => changeStep(step - 1)} disabled={step === 1 || isStepExiting}>← Voltar</button>
           {step < TOTAL_STEPS ? (
-            <button type="button" className={styles.primaryButton} onClick={() => setStep((current) => Math.min(TOTAL_STEPS, current + 1))}>Avançar →</button>
+            <button type="button" className={styles.primaryButton} onClick={() => changeStep(step + 1)} disabled={isStepExiting}>Avançar →</button>
           ) : (
             <button type="button" className={styles.finishButton} onClick={finish} disabled={isGenerating}>
               {isGenerating ? <><span className={styles.spinner} /> Organizando sua mensagem...</> : <>◉ Gerar mensagem para WhatsApp</>}
@@ -371,20 +411,29 @@ export default function AssistantPage() {
           )}
         </footer>
 
-        <div className={styles.privacy}>Privacidade: suas escolhas são usadas somente para organizar o seu atendimento com Alyne Crisóstomo.</div>
+        <div className={`${styles.privacy} assistant-theme-privacy`}>Privacidade: suas escolhas são usadas somente para organizar o seu atendimento com Alyne Crisóstomo.</div>
       </section>
 
-      {result ? (
+      {isResultOpen ? (
         <div className={styles.modalBackdrop} role="dialog" aria-modal="true" aria-labelledby="guided-result-title">
-          <section className={styles.modal}>
-            <button type="button" className={styles.modalClose} onClick={() => setResult("")} aria-label="Fechar">×</button>
+          <section className={`${styles.modal} assistant-theme-modal`}>
+            <button type="button" className={`${styles.modalClose} assistant-theme-modal-close`} onClick={() => setIsResultOpen(false)} aria-label="Fechar">×</button>
             <span className={styles.modalIcon}>✓</span>
             <span className={styles.kicker}>BUSCA CONCLUÍDA</span>
             <h2 id="guided-result-title">Sua mensagem está pronta.</h2>
             <p className={styles.modalLead}>Revise antes de abrir o WhatsApp. A mensagem foi organizada {resultSource === "gemini" ? "com o Gemini" : "pelo modo seguro de fallback"}.</p>
-            <pre className={styles.messagePreview}>{result}</pre>
+            <textarea
+              className={`${styles.messagePreview} assistant-message-editor`}
+              value={result}
+              onChange={(event) => {
+                setResult(event.target.value);
+                setCopied(false);
+              }}
+              rows={9}
+              aria-label="Mensagem editável para WhatsApp"
+            />
             <div className={styles.modalActions}>
-              <button type="button" className={styles.secondaryButton} onClick={copyResult}>{copied ? "Copiado ✓" : "Copiar mensagem"}</button>
+              <button type="button" className={`${styles.secondaryButton} assistant-theme-secondary`} onClick={copyResult}>{copied ? "Copiado ✓" : "Copiar mensagem"}</button>
               <a className={styles.whatsappButton} href={whatsappUrl(result)} target="_blank" rel="noreferrer">Abrir WhatsApp ↗</a>
             </div>
             <button type="button" className={styles.restartButton} onClick={restart}>Refazer busca guiada</button>
