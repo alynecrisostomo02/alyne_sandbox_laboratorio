@@ -3,19 +3,33 @@
 import { SITE_CONFIG } from "../config";
 import { navigate, whatsappFor } from "../utils";
 import { Icon } from "./Icons";
+import {
+  OrganicBotanicalAbstract,
+  FineBotanicalBranch,
+  GoldenFluidWave,
+  GoldenTropicalLeaves,
+  RealEstateEcoEmblem,
+} from "./DecorativeElements";
 
 export function About() {
   return (
     <main>
-      <section className="page-banner">
-        <div className="container narrow">
+      <section className="page-banner relative overflow-hidden">
+        <GoldenFluidWave className="page-banner-wave" size={500} opacity={0.20} />
+        <FineBotanicalBranch className="page-banner-watermark-right" size={150} opacity={0.22} color="#d7b875" variant="horizontal" />
+        <RealEstateEcoEmblem className="page-banner-watermark-left" size={130} opacity={0.22} variant="eco-leaf" color="#c6a15b" />
+        
+        <div className="container narrow relative" style={{ zIndex: 2 }}>
           <p className="eyebrow">Sobre a corretora</p>
           <h1>Imóveis com contexto. Atendimento com proximidade.</h1>
           <p>Uma atuação local, cuidadosa e centrada no que faz sentido para cada cliente.</p>
         </div>
       </section>
-      <section className="section">
-        <div className="container about-layout">
+
+      <section className="section relative overflow-hidden">
+        <OrganicBotanicalAbstract className="about-botanical-bg" size={240} opacity={0.18} variant="sage" />
+        
+        <div className="container about-layout relative" style={{ zIndex: 2 }}>
           <div className="about-visual" aria-hidden="true">
             <span className="about-arch" />
             <span className="about-sun" />
@@ -32,9 +46,18 @@ export function About() {
               humano para confirmar cada detalhe antes da decisão.
             </p>
             <div className="values-list">
-              <div><span><Icon name="check" size={16} /></span><p><strong>Informação objetiva</strong><small>O essencial apresentado de forma organizada.</small></p></div>
-              <div><span><Icon name="check" size={16} /></span><p><strong>Atendimento próximo</strong><small>Contato direto e atenção ao seu perfil.</small></p></div>
-              <div><span><Icon name="check" size={16} /></span><p><strong>Conhecimento da região</strong><small>Busca orientada para a realidade de Redenção.</small></p></div>
+              <div>
+                <span><Icon name="check" size={16} /></span>
+                <p><strong>Informação objetiva</strong><small>O essencial apresentado de forma organizada.</small></p>
+              </div>
+              <div>
+                <span><Icon name="check" size={16} /></span>
+                <p><strong>Atendimento próximo</strong><small>Contato direto e atenção ao seu perfil.</small></p>
+              </div>
+              <div>
+                <span><Icon name="check" size={16} /></span>
+                <p><strong>Conhecimento da região</strong><small>Busca orientada para a realidade de Redenção.</small></p>
+              </div>
             </div>
             <button className="button button-primary" type="button" onClick={() => navigate("#/contato")}>
               Entre em contato <Icon name="arrow" size={18} />
@@ -49,15 +72,22 @@ export function About() {
 export function Contact() {
   return (
     <main>
-      <section className="page-banner">
-        <div className="container narrow">
+      <section className="page-banner relative overflow-hidden">
+        <GoldenFluidWave className="page-banner-wave" size={500} opacity={0.20} />
+        <GoldenTropicalLeaves className="contact-golden-leaves" size={160} opacity={0.20} />
+        <RealEstateEcoEmblem className="page-banner-watermark-left" size={130} opacity={0.24} variant="location" color="#c6a15b" />
+        
+        <div className="container narrow relative" style={{ zIndex: 2 }}>
           <p className="eyebrow">Contato</p>
           <h1>Vamos conversar sobre o imóvel que você procura.</h1>
           <p>Escolha o canal de atendimento e fale diretamente com a equipe.</p>
         </div>
       </section>
-      <section className="section">
-        <div className="container contact-layout">
+
+      <section className="section relative overflow-hidden">
+        <OrganicBotanicalAbstract className="contact-botanical-bg" size={230} opacity={0.18} variant="warm" />
+        
+        <div className="container contact-layout relative" style={{ zIndex: 2 }}>
           <div className="contact-main">
             <p className="eyebrow dark">Atendimento direto</p>
             <h2>Conte o que você precisa.</h2>

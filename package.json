@@ -7,10 +7,14 @@
     "dev": "vinext dev",
     "verify": "node scripts/verify-catalog.mjs",
     "build": "vinext build && node scripts/strip-build-secrets.mjs",
-    "check": "corepack pnpm run verify && corepack pnpm run build",
+    "check": "npm run verify && npm run build",
     "start": "vinext start"
   },
   "dependencies": {
+    "@google/genai": "^2.17.1",
+    "jspdf": "^4.2.1",
+    "jszip": "^3.10.1",
+    "motion": "^13.1.0",
     "react": "19.2.6",
     "react-dom": "19.2.6",
     "react-server-dom-webpack": "19.2.6",

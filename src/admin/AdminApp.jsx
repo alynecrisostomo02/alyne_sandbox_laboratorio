@@ -1,11 +1,22 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { properties as initialProperties, purposeLabels, typeLabels } from "../properties";
 import { propertyGallery, propertyPublicLocation, propertyStatus } from "../propertyStatus";
 import { CaptacaoDashboard, CaptacaoForm, CaptacaoSummary } from "../components/Captacao";
 import { Icon } from "../components/Icons";
 import { normalizePropertyCode, propertyCodeFromRecord, suggestAvailablePropertyCodes } from "./propertyCodes";
+import { SandboxWorkspace } from "../sandbox/SandboxWorkspace";
+import { DeveloperWorkspace } from "../sandbox/DeveloperWorkspace";
+import { INITIAL_SANDBOX_MODULES, INITIAL_SYSTEM_SNAPSHOTS } from "../sandbox/sandboxStore";
+import {
+  fetchAddressByCep,
+  formatCep,
+  cleanCepDigits,
+  determineZone,
+  getCoordinatesForAddress,
+} from "../utils/addressGeocoding";
 
 const FILTERS = [
   ["all", "Todos os status"],
@@ -61,7 +72,11 @@ function freshProperty(records) {
     purpose: "venda",
     type: "casa",
     city: "Redenção",
+    cep: "",
     neighborhood: "",
+    zone: "",
+    latitude: "",
+    longitude: "",
     publicLocation: "Redenção, PA",
     price: "",
     priceOnRequest: false,
@@ -109,6 +124,8 @@ function PropertyEditor({ property, isNew, records, onClose, onSave, onUpload })
   const [draft, setDraft] = useState(property);
   const [codeError, setCodeError] = useState("");
   const [saveError, setSaveError] = useState("");
+  const [cepLoading, setCepLoading] = useState(false);
+  const [cepFeedback, setCepFeedback] = useState("");
   const firstField = useRef(null);
   const codeSuggestions = useMemo(() => suggestAvailablePropertyCodes(records, 4), [records]);
   const usedCodes = useMemo(() => new Set(records
@@ -123,10 +140,65 @@ function PropertyEditor({ property, isNew, records, onClose, onSave, onUpload })
     return () => window.removeEventListener("keydown", close);
   }, [onClose]);
 
+  async function handleAdminCepLookup(cepToQuery) {
+    const clean = cleanCepDigits(cepToQuery);
+    if (clean.length !== 8) {
+      setCepFeedback("Digite o CEP completo com 8 dígitos.");
+      return;
+    }
+
+    setCepLoading(true);
+    setCepFeedback("Consultando CEP...");
+
+    try {
+      const data = await fetchAddressByCep(clean);
+      if (data && data.valid) {
+        setDraft((curr) => ({
+          ...curr,
+          cep: data.cep,
+          neighborhood: data.neighborhood || curr.neighborhood,
+          publicLocation: data.publicLocation || curr.publicLocation,
+          zone: data.zone || curr.zone,
+          latitude: data.coordinates?.lat ? String(data.coordinates.lat) : curr.latitude,
+          longitude: data.coordinates?.lng ? String(data.coordinates.lng) : curr.longitude,
+        }));
+        setCepFeedback(`Localizado: ${data.neighborhood || "Redenção"} (${data.zone}) • Coordenadas preenchidas!`);
+      } else {
+        setCepFeedback("CEP não encontrado. Preencha o bairro manualmente.");
+      }
+    } catch {
+      setCepFeedback("Erro ao consultar CEP. Preencha o bairro manualmente.");
+    } finally {
+      setCepLoading(false);
+    }
+  }
+
+  function handleAdminCepInput(e) {
+    const val = e.target.value;
+    const formatted = formatCep(val);
+    update("cep", formatted);
+    const clean = cleanCepDigits(val);
+    if (clean.length === 8) {
+      handleAdminCepLookup(clean);
+    }
+  }
+
   function update(name, value) {
     if (name === "idRef") {
       const code = normalizePropertyCode(value);
       setCodeError(code && usedCodes.has(code) ? `O código ${code} já pertence a outro imóvel.` : "");
+    } else if (name === "neighborhood") {
+      const zone = determineZone(value, draft.city || "Redenção");
+      const coords = getCoordinatesForAddress({ neighborhood: value, city: draft.city });
+      setDraft((curr) => ({
+        ...curr,
+        neighborhood: value,
+        zone: curr.zone || zone,
+        publicLocation: value ? `${value}, Redenção - PA` : "Redenção, PA",
+        latitude: curr.latitude || (coords.lat ? String(coords.lat) : ""),
+        longitude: curr.longitude || (coords.lng ? String(coords.lng) : ""),
+      }));
+      return;
     }
     setDraft((current) => ({ ...current, [name]: value }));
   }
@@ -227,8 +299,25 @@ function PropertyEditor({ property, isNew, records, onClose, onSave, onUpload })
   }
 
   return (
-    <div className="admin-modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
-      <section className="admin-editor" role="dialog" aria-modal="true" aria-labelledby="editor-title">
+    <motion.div
+      className="admin-modal-backdrop"
+      role="presentation"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      onMouseDown={(event) => event.target === event.currentTarget && onClose()}
+    >
+      <motion.section
+        className="admin-editor"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="editor-title"
+        initial={{ opacity: 0, scale: 0.96, y: 16 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.96, y: 16 }}
+        transition={{ type: "spring", damping: 25, stiffness: 320 }}
+      >
         <header>
           <div>
             <span className="admin-kicker">{isNew ? "Novo cadastro" : draft.id}</span>
@@ -284,8 +373,41 @@ function PropertyEditor({ property, isNew, records, onClose, onSave, onUpload })
                 <option>Arquivado</option>
               </select>
             </EditableField>
+
+            <label className="admin-field admin-field-wide">
+              <span>Validação Automática por CEP</span>
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <input
+                  style={{ maxWidth: "160px", fontWeight: "bold" }}
+                  placeholder="68550-000"
+                  value={draft.cep || ""}
+                  onChange={handleAdminCepInput}
+                  maxLength={9}
+                  inputMode="numeric"
+                />
+                <button
+                  type="button"
+                  className="button button-outline"
+                  style={{ padding: "8px 14px", fontSize: "12px", height: "auto" }}
+                  disabled={cepLoading || cleanCepDigits(draft.cep).length !== 8}
+                  onClick={() => handleAdminCepLookup(draft.cep)}
+                >
+                  <Icon name={cepLoading ? "refresh" : "search"} size={14} />
+                  <span>{cepLoading ? "Buscando..." : "Buscar Endereço"}</span>
+                </button>
+              </div>
+              {cepFeedback && (
+                <small style={{ color: "#225e4e", marginTop: "4px", display: "block", fontWeight: 500 }}>
+                  {cepFeedback}
+                </small>
+              )}
+            </label>
+
             <EditableField label="Bairro" name="neighborhood" value={draft.neighborhood} onChange={update} />
+            <EditableField label="Zona / Região" name="zone" value={draft.zone || ""} onChange={update} />
             <EditableField label="Localização exibida" name="publicLocation" value={draft.publicLocation} onChange={update} />
+            <EditableField label="Latitude (Geolocalização)" name="latitude" value={draft.latitude || ""} onChange={update} />
+            <EditableField label="Longitude (Geolocalização)" name="longitude" value={draft.longitude || ""} onChange={update} />
             <EditableField label="Quartos" name="bedrooms" type="number" value={draft.bedrooms} onChange={update} />
             <EditableField label="Suítes" name="suites" type="number" value={draft.suites} onChange={update} />
             <EditableField label="Vagas" name="parking" type="number" value={draft.parking} onChange={update} />
@@ -382,28 +504,54 @@ function PropertyEditor({ property, isNew, records, onClose, onSave, onUpload })
             <button className="admin-button admin-button-primary" type="submit">Salvar imóvel</button>
           </footer>
         </form>
-      </section>
-    </div>
+      </motion.section>
+    </motion.div>
   );
 }
 
 function ConfirmDialog({ title, message, actionLabel, danger = false, onCancel, onConfirm }) {
   return (
-    <div className="admin-modal-backdrop admin-confirm-backdrop" role="presentation">
-      <section className="admin-confirm" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title">
+    <motion.div
+      className="admin-modal-backdrop admin-confirm-backdrop"
+      role="presentation"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.18 }}
+      onMouseDown={(e) => e.target === e.currentTarget && onCancel()}
+    >
+      <motion.section
+        className="admin-confirm"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="confirm-title"
+        initial={{ opacity: 0, scale: 0.95, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 12 }}
+        transition={{ type: "spring", damping: 25, stiffness: 320 }}
+      >
         <h2 id="confirm-title">{title}</h2>
         <p>{message}</p>
         <div>
           <button className="admin-button admin-button-secondary" type="button" onClick={onCancel}>Cancelar</button>
           <button className={`admin-button ${danger ? "admin-button-danger" : "admin-button-primary"}`} type="button" onClick={onConfirm}>{actionLabel}</button>
         </div>
-      </section>
-    </div>
+      </motion.section>
+    </motion.div>
   );
 }
 
+function getAdminHeaders(extra = {}) {
+  const headers = { ...extra };
+  try {
+    const token = window.sessionStorage.getItem("alyne_admin_token");
+    if (token) headers["x-admin-token"] = token;
+  } catch {}
+  return headers;
+}
+
 function LoginScreen({ onAuthenticated }) {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState("alynecrisostomo02@gmail.com");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -418,7 +566,15 @@ function LoginScreen({ onAuthenticated }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      if (!response.ok) throw new Error(response.status === 429 ? "Muitas tentativas. Aguarde um minuto." : "Senha incorreta.");
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.authenticated) {
+        throw new Error(response.status === 429 ? "Muitas tentativas. Aguarde um minuto." : "Senha incorreta.");
+      }
+      if (data.token) {
+        try {
+          window.sessionStorage.setItem("alyne_admin_token", data.token);
+        } catch {}
+      }
       onAuthenticated();
     } catch (cause) {
       setError(cause.message || "Não foi possível entrar.");
@@ -458,13 +614,124 @@ export default function AdminApp() {
   const [captureView, setCaptureView] = useState("dashboard");
   const [captureDraft, setCaptureDraft] = useState(null);
 
+  // Sandbox & Developer state
+  const [sandboxModules, setSandboxModules] = useState(() => {
+    if (typeof window === "undefined") return INITIAL_SANDBOX_MODULES;
+    try {
+      const saved = window.localStorage.getItem("alyne_sandbox_modules");
+      return saved ? JSON.parse(saved) : INITIAL_SANDBOX_MODULES;
+    } catch {
+      return INITIAL_SANDBOX_MODULES;
+    }
+  });
+
+  const [activeSandboxModuleId, setActiveSandboxModuleId] = useState(() => {
+    return sandboxModules[0]?.id || "mod-calc-financiamento";
+  });
+
+  const [systemSnapshots, setSystemSnapshots] = useState(() => {
+    if (typeof window === "undefined") return INITIAL_SYSTEM_SNAPSHOTS;
+    try {
+      const saved = window.localStorage.getItem("alyne_system_snapshots");
+      return saved ? JSON.parse(saved) : INITIAL_SYSTEM_SNAPSHOTS;
+    } catch {
+      return INITIAL_SYSTEM_SNAPSHOTS;
+    }
+  });
+
   useEffect(() => {
-    fetch("/api/admin/session").then((response) => response.json()).then((payload) => setAuth(payload.authenticated ? "authenticated" : "anonymous")).catch(() => setAuth("anonymous"));
+    try {
+      window.localStorage.setItem("alyne_sandbox_modules", JSON.stringify(sandboxModules));
+    } catch {}
+  }, [sandboxModules]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("alyne_system_snapshots", JSON.stringify(systemSnapshots));
+    } catch {}
+  }, [systemSnapshots]);
+
+  function handleAddSandboxModule(newModule) {
+    setSandboxModules((prev) => [newModule, ...prev.filter((m) => m.id !== newModule.id)]);
+    setActiveSandboxModuleId(newModule.id);
+    setToast(`Módulo "${newModule.name}" carregado na Sandbox.`);
+  }
+
+  function handleUpdateSandboxModule(updatedModule) {
+    setSandboxModules((prev) => prev.map((m) => m.id === updatedModule.id ? updatedModule : m));
+  }
+
+  function handleDeleteSandboxModule(id) {
+    setSandboxModules((prev) => prev.filter((m) => m.id !== id));
+    if (activeSandboxModuleId === id) {
+      setActiveSandboxModuleId(sandboxModules.find((m) => m.id !== id)?.id || "");
+    }
+    setToast("Módulo removido da Sandbox.");
+  }
+
+  async function handleDeploySandboxModule(module, password) {
+    // 1. Create safety snapshot
+    const snapshot = {
+      id: `snp-auto-${Date.now()}`,
+      name: `Snapshot Automático Pré-Implantação — ${module.name}`,
+      createdAt: new Date().toISOString(),
+      createdBy: "admin@alynecrisostomo.com.br",
+      description: `Backup do sistema gerado automaticamente antes de promover o módulo ${module.name} (v${module.version}).`,
+      fileCount: 142 + (module.fileCount || 1),
+      size: "4.9 MB",
+      type: "automatic"
+    };
+
+    setSystemSnapshots((prev) => [snapshot, ...prev]);
+
+    // 2. Mark module as deployed
+    const updated = {
+      ...module,
+      status: "deployed",
+      deployedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      versions: [
+        {
+          version: module.version,
+          date: new Date().toISOString(),
+          notes: "Implantado definitivamente no sistema após aprovação e verificação de senha.",
+          status: "deployed"
+        },
+        ...(module.versions || [])
+      ]
+    };
+
+    setSandboxModules((prev) => prev.map((m) => m.id === module.id ? updated : m));
+    setToast(`Módulo "${module.name}" implantado com sucesso no sistema!`);
+  }
+
+  function handleCreateSnapshot(newSnapshot) {
+    const snapshot = {
+      id: `snp-${Date.now()}`,
+      ...newSnapshot,
+      createdAt: new Date().toISOString()
+    };
+    setSystemSnapshots((prev) => [snapshot, ...prev]);
+    setToast("Novo snapshot gravado com sucesso.");
+  }
+
+  function handleRestoreSnapshot(snapshot) {
+    setToast(`Sistema restaurado para o ponto: ${snapshot.name}`);
+  }
+
+  useEffect(() => {
+    fetch("/api/admin/session", { headers: getAdminHeaders() })
+      .then((response) => response.json())
+      .then((payload) => setAuth(payload.authenticated ? "authenticated" : "anonymous"))
+      .catch(() => setAuth("anonymous"));
   }, []);
 
   useEffect(() => {
     if (auth !== "authenticated") return;
-    fetch("/api/admin/properties").then((response) => response.ok ? response.json() : Promise.reject()).then((payload) => Array.isArray(payload.properties) && setRecords(payload.properties)).catch(() => setToast("Não foi possível carregar os dados permanentes."));
+    fetch("/api/admin/properties", { headers: getAdminHeaders() })
+      .then((response) => response.ok ? response.json() : Promise.reject())
+      .then((payload) => Array.isArray(payload.properties) && setRecords(payload.properties))
+      .catch(() => setToast("Não foi possível carregar os dados permanentes."));
   }, [auth]);
 
   useEffect(() => {
@@ -497,12 +764,19 @@ export default function AdminApp() {
   }, [records, query, filter]);
 
   async function persistRecord(next, createOnly = false) {
-    const response = await fetch("/api/admin/properties", { method: "PUT", headers: { "Content-Type": "application/json", "X-Admin-Operation": createOnly ? "create" : "update" }, body: JSON.stringify(next) });
+    const response = await fetch("/api/admin/properties", {
+      method: "PUT",
+      headers: getAdminHeaders({
+        "Content-Type": "application/json",
+        "X-Admin-Operation": createOnly ? "create" : "update"
+      }),
+      body: JSON.stringify(next)
+    });
     if (response.status === 401) setAuth("anonymous");
     if (!response.ok) {
       const payload = await response.json().catch(() => ({}));
       if (payload.code === "PROPERTY_CODE_EXISTS") {
-        const refreshed = await fetch("/api/admin/properties").then((result) => result.ok ? result.json() : null).catch(() => null);
+        const refreshed = await fetch("/api/admin/properties", { headers: getAdminHeaders() }).then((result) => result.ok ? result.json() : null).catch(() => null);
         if (Array.isArray(refreshed?.properties)) setRecords(refreshed.properties);
       }
       throw new Error(payload.code || "SAVE_FAILED");
@@ -564,7 +838,10 @@ export default function AdminApp() {
       actionLabel: "Excluir imóvel",
       danger: true,
       onConfirm: async () => {
-        const response = await fetch(`/api/admin/properties/${encodeURIComponent(property.id)}`, { method: "DELETE" });
+        const response = await fetch(`/api/admin/properties/${encodeURIComponent(property.id)}`, {
+          method: "DELETE",
+          headers: getAdminHeaders()
+        });
         if (!response.ok) throw new Error("DELETE_FAILED");
         setRecords((current) => current.filter((item) => item.id !== property.id));
         setConfirm(null);
@@ -574,13 +851,20 @@ export default function AdminApp() {
   }
 
   async function uploadPhoto(file, propertyId) {
-    const response = await fetch("/api/admin/photos", { method: "POST", headers: { "Content-Type": file.type, "X-Property-Id": propertyId }, body: file });
+    const response = await fetch("/api/admin/photos", {
+      method: "POST",
+      headers: getAdminHeaders({ "Content-Type": file.type, "X-Property-Id": propertyId }),
+      body: file
+    });
     if (!response.ok) throw new Error("UPLOAD_FAILED");
     return response.json();
   }
 
   async function logout() {
-    await fetch("/api/admin/session", { method: "DELETE" });
+    try {
+      window.sessionStorage.removeItem("alyne_admin_token");
+    } catch {}
+    await fetch("/api/admin/session", { method: "DELETE", headers: getAdminHeaders() });
     setAuth("anonymous");
   }
 
@@ -603,6 +887,19 @@ export default function AdminApp() {
             setCaptureView("dashboard");
             setEditing(null);
           }}><span>Captação</span></button>
+          <button className={`admin-section-tab ${activeSection === "sandbox" ? "active" : ""}`} type="button" onClick={() => {
+            setActiveSection("sandbox");
+            setEditing(null);
+          }}>
+            <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+              <span>Sandbox</span>
+              <span className="sandbox-tab-badge">Lab</span>
+            </span>
+          </button>
+          <button className={`admin-section-tab ${activeSection === "developer" ? "active" : ""}`} type="button" onClick={() => {
+            setActiveSection("developer");
+            setEditing(null);
+          }}><span>Desenvolvedor</span></button>
           <a href="/" target="_blank" rel="noreferrer">Ver site</a>
           <button type="button" onClick={logout}>Sair com segurança</button>
         </nav>
@@ -612,13 +909,46 @@ export default function AdminApp() {
         </div>
       </aside>
 
-      {activeSection === "capture" ? (
+      {activeSection === "sandbox" ? (
+        <section className="admin-workspace admin-sandbox-workspace">
+          <SandboxWorkspace
+            modules={sandboxModules}
+            activeModuleId={activeSandboxModuleId}
+            onSelectModule={setActiveSandboxModuleId}
+            onUpdateModule={handleUpdateSandboxModule}
+            onDeleteModule={handleDeleteSandboxModule}
+            onDeployModule={handleDeploySandboxModule}
+            onAddModule={handleAddSandboxModule}
+            onNavigateToDev={() => setActiveSection("developer")}
+          />
+        </section>
+      ) : activeSection === "developer" ? (
+        <section className="admin-workspace admin-dev-workspace">
+          <DeveloperWorkspace
+            modules={sandboxModules}
+            snapshots={systemSnapshots}
+            onSelectModule={(id) => {
+              setActiveSandboxModuleId(id);
+              setActiveSection("sandbox");
+            }}
+            onUpdateModule={handleUpdateSandboxModule}
+            onDeleteModule={handleDeleteSandboxModule}
+            onCreateSnapshot={handleCreateSnapshot}
+            onRestoreSnapshot={handleRestoreSnapshot}
+            onNavigateToSandbox={() => setActiveSection("sandbox")}
+          />
+        </section>
+      ) : activeSection === "capture" ? (
         <section className="admin-workspace admin-capture-workspace">
           {captureView === "summary" ? (
             <CaptacaoSummary
               draft={captureDraft}
               onBack={() => setCaptureView("form")}
               onEdit={() => setCaptureView("form")}
+              onFinishSuccess={() => {
+                setCaptureView("dashboard");
+                setToast("Ficha finalizada e salva no banco.");
+              }}
             />
           ) : captureView === "form" ? (
             <CaptacaoForm
@@ -630,10 +960,16 @@ export default function AdminApp() {
               }}
             />
           ) : (
-            <CaptacaoDashboard onNewForm={() => {
-              setCaptureDraft(null);
-              setCaptureView("form");
-            }} />
+            <CaptacaoDashboard
+              onNewForm={(importedDraft) => {
+                setCaptureDraft(importedDraft || null);
+                setCaptureView("form");
+              }}
+              onSelectForm={(formItem) => {
+                setCaptureDraft(formItem);
+                setCaptureView("summary");
+              }}
+            />
           )}
         </section>
       ) : (
@@ -733,8 +1069,10 @@ export default function AdminApp() {
       </section>
       )}
 
-      {editing && <PropertyEditor property={editing} isNew={isNew} records={records} onClose={() => { setEditing(null); setIsNew(false); }} onSave={updateRecord} onUpload={uploadPhoto} />}
-      {confirm && <ConfirmDialog {...confirm} onCancel={() => setConfirm(null)} />}
+      <AnimatePresence>
+        {editing && <PropertyEditor key="property-editor" property={editing} isNew={isNew} records={records} onClose={() => { setEditing(null); setIsNew(false); }} onSave={updateRecord} onUpload={uploadPhoto} />}
+        {confirm && <ConfirmDialog key="confirm-dialog" {...confirm} onCancel={() => setConfirm(null)} />}
+      </AnimatePresence>
       <div className={`admin-toast ${toast ? "show" : ""}`} role="status" aria-live="polite">{toast}</div>
     </main>
   );

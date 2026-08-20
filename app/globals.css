@@ -1543,6 +1543,1168 @@
   }
 }
 
+/* PDF Download Banner & Detail Actions */
+.detail-pdf-banner {
+  margin: 18px 0 6px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #f9f6ee, #f3ede0);
+  border: 1px solid #dfcca6;
+  border-radius: var(--radius);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 4px 14px rgba(18, 57, 47, 0.05);
+}
+
+.detail-pdf-btn {
+  color: var(--green-900);
+  background: #ffffff;
+  border: 1px solid #c9a665;
+  border-radius: 9px;
+  padding: 9px 15px;
+  font-size: 0.84rem;
+  font-weight: 750;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: 0 2px 6px rgba(18, 57, 47, 0.06);
+}
+
+.detail-pdf-btn:hover:not(:disabled) {
+  background: var(--green-900);
+  color: #ffffff;
+  border-color: var(--green-900);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(18, 57, 47, 0.18);
+}
+
+.detail-pdf-btn:disabled,
+.icon-action:disabled,
+.interest-secondary button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+  pointer-events: none;
+}
+
+.detail-pdf-banner span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+  flex: 1 1 200px;
+}
+
+/* ==========================================================================
+   MICRO-INTERAÇÕES DE LUXO & NATUREZA (Shimmer, Folhas & Easing Orgânico)
+   ========================================================================== */
+
+:root {
+  --ease-nature: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.3, 0.64, 1);
+  --ease-breeze: cubic-bezier(0.37, 0, 0.63, 1);
+  --gold-shimmer: rgba(228, 189, 114, 0.42);
+  --moss-glow: rgba(27, 78, 65, 0.18);
+}
+
+/* 1. EFEITO BRILHO (SHIMMER) NO HOVER — Luz solar suave deslizando na superfície */
+.button,
+.detail-pdf-btn,
+.capture-save-button,
+.capture-continue-button,
+.capture-summary-primary,
+.capture-summary-actions button,
+.mobile-filter-button,
+.modal-submit-btn,
+.answer-grid button {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform 0.22s var(--ease-nature),
+              box-shadow 0.24s var(--ease-nature),
+              background-color 0.22s ease,
+              border-color 0.22s ease,
+              color 0.2s ease;
+}
+
+.button::after,
+.detail-pdf-btn::after,
+.capture-save-button::after,
+.capture-continue-button::after,
+.capture-summary-primary::after,
+.capture-summary-actions button::after,
+.mobile-filter-button::after,
+.modal-submit-btn::after,
+.answer-grid button::after {
+  content: "";
+  position: absolute;
+  top: -60%;
+  left: -130%;
+  width: 75%;
+  height: 220%;
+  background: linear-gradient(
+    108deg,
+    transparent 15%,
+    rgba(255, 255, 255, 0.12) 32%,
+    rgba(228, 189, 114, 0.38) 48%,
+    rgba(255, 255, 255, 0.24) 56%,
+    transparent 82%
+  );
+  transform: rotate(22deg);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 2;
+}
+
+.button:hover:not(:disabled)::after,
+.detail-pdf-btn:hover:not(:disabled)::after,
+.capture-save-button:hover:not(:disabled)::after,
+.capture-continue-button:hover:not(:disabled)::after,
+.capture-summary-primary:hover:not(:disabled)::after,
+.capture-summary-actions button:hover:not(:disabled)::after,
+.mobile-filter-button:hover:not(:disabled)::after,
+.modal-submit-btn:hover:not(:disabled)::after,
+.answer-grid button:hover:not(:disabled)::after {
+  opacity: 1;
+  animation: sunlight-leaf-shimmer 0.72s var(--ease-nature) forwards;
+}
+
+@keyframes sunlight-leaf-shimmer {
+  0% {
+    left: -130%;
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.9;
+  }
+  80% {
+    opacity: 0.9;
+  }
+  100% {
+    left: 210%;
+    opacity: 0;
+  }
+}
+
+/* Micro-feedback tátil orgânico ao clicar */
+.button:active:not(:disabled),
+.detail-pdf-btn:active:not(:disabled),
+.capture-summary-primary:active:not(:disabled),
+.answer-grid button:active:not(:disabled) {
+  transform: scale(0.982) translateY(0.5px);
+  transition-duration: 0.08s;
+}
+
+/* 2. EFEITO FOLHAS / CRESCIMENTO (BOTANICAL SPROUT FLOURISH) */
+
+/* Broto de folha estilizado no canto da mídia do card */
+.card-leaf-corner {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  color: var(--gold);
+  z-index: 6;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.35) rotate(-18deg);
+  transform-origin: bottom right;
+  transition: opacity 0.36s var(--ease-nature),
+              transform 0.42s var(--ease-spring);
+  filter: drop-shadow(0 2px 5px rgba(13, 45, 38, 0.28));
+}
+
+.leaf-sprout-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.leaf-stem {
+  stroke-dasharray: 38;
+  stroke-dashoffset: 38;
+  transition: stroke-dashoffset 0.42s var(--ease-nature);
+}
+
+.leaf-blade {
+  opacity: 0;
+  transform-origin: center bottom;
+  transition: opacity 0.3s ease, transform 0.38s var(--ease-spring);
+}
+
+.property-card:hover .card-leaf-corner {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+}
+
+.property-card:hover .leaf-stem {
+  stroke-dashoffset: 0;
+}
+
+.property-card:hover .leaf-blade-main {
+  opacity: 1;
+  transform: scale(1);
+  transition-delay: 0.06s;
+}
+
+.property-card:hover .leaf-blade-sub {
+  opacity: 1;
+  transform: scale(1);
+  transition-delay: 0.12s;
+}
+
+/* 3. EFEITO NATUREZA — Transições Suaves, Elevação com Brisa & Física Orgânica */
+
+.property-card {
+  transition: transform 0.35s var(--ease-nature),
+              box-shadow 0.35s var(--ease-nature),
+              border-color 0.28s var(--ease-nature);
+  will-change: transform, box-shadow;
+}
+
+.property-card:hover {
+  transform: translateY(-5px) scale(1.004);
+  border-color: rgba(198, 161, 91, 0.45);
+  box-shadow: 0 18px 42px -10px rgba(13, 45, 38, 0.14),
+              0 2px 10px rgba(198, 161, 91, 0.1),
+              0 0 0 1px rgba(198, 161, 91, 0.2);
+}
+
+.property-card .property-visual img {
+  transition: transform 0.58s var(--ease-nature),
+              filter 0.4s ease;
+  will-change: transform;
+}
+
+.property-card:hover .property-visual.has-photo:not(.fit-contain) img {
+  transform: scale(1.035);
+  filter: saturate(0.96) contrast(1) brightness(1.01);
+}
+
+/* Botão de Favorito com pulso botânico */
+.favorite-button {
+  transition: transform 0.28s var(--ease-spring),
+              box-shadow 0.24s var(--ease-nature),
+              background-color 0.2s ease,
+              color 0.2s ease;
+}
+
+.favorite-button:hover {
+  background: #ffffff;
+  transform: scale(1.08) translateY(-1px);
+  box-shadow: 0 6px 18px rgba(13, 45, 38, 0.22);
+}
+
+.favorite-button:active {
+  transform: scale(0.92);
+}
+
+.favorite-button.is-favorite {
+  animation: botanical-heart-pop 0.42s var(--ease-spring);
+}
+
+@keyframes botanical-heart-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.22) rotate(4deg);
+  }
+  75% {
+    transform: scale(0.95) rotate(-2deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* Chips, Tags e Selos com micro-interação orgânica */
+.purpose-chip,
+.status-chip,
+.type-chip,
+.demo-pill {
+  transition: transform 0.24s var(--ease-spring),
+              box-shadow 0.24s var(--ease-nature),
+              background-color 0.2s ease;
+}
+
+.purpose-chip:hover,
+.status-chip:hover,
+.type-chip:hover {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 3px 8px rgba(13, 45, 38, 0.12);
+}
+
+/* Cards de Serviços e Formulários de Captação */
+.service-card {
+  transition: transform 0.32s var(--ease-nature),
+              box-shadow 0.32s var(--ease-nature),
+              border-color 0.28s var(--ease-nature);
+}
+
+.service-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(198, 161, 91, 0.42);
+  box-shadow: 0 16px 36px -8px rgba(13, 45, 38, 0.12),
+              0 0 0 1px rgba(198, 161, 91, 0.15);
+}
+
+.service-card .number {
+  transition: transform 0.3s var(--ease-spring), color 0.2s ease;
+}
+
+.service-card:hover .number {
+  transform: scale(1.06) translateX(2px);
+  color: var(--gold);
+}
+
+/* Inputs e Selects com foco refinado em tons de verde musgo & dourado */
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--green-700);
+  box-shadow: 0 0 0 3.5px rgba(34, 94, 78, 0.14),
+              0 1px 3px rgba(198, 161, 91, 0.12);
+  transition: border-color 0.2s var(--ease-nature),
+              box-shadow 0.24s var(--ease-nature);
+}
+
+/* Acessibilidade: Respeito à preferência por movimento reduzido */
+@media (prefers-reduced-motion: reduce) {
+  .button::after,
+  .detail-pdf-btn::after,
+  .capture-summary-primary::after,
+  .card-leaf-corner,
+  .favorite-button.is-favorite {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ==========================================================================
+   SEÇÃO DE LOCALIZAÇÃO GOOGLE MAPS & PROXIMIDADES (CATÁLOGO & DETALHES)
+   ========================================================================== */
+
+.property-location-section {
+  margin-top: 32px;
+  padding: 28px 24px;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e8e3d9;
+  box-shadow: 0 4px 20px -4px rgba(13, 45, 38, 0.05);
+}
+
+.location-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #f0ebe1;
+}
+
+.location-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--green-700);
+  background: rgba(34, 94, 78, 0.08);
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+}
+
+.location-section-header h2 {
+  font-family: var(--font-display, inherit);
+  font-size: 24px;
+  color: var(--green-900);
+  margin: 0 0 6px 0;
+  font-weight: 600;
+}
+
+.location-address-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #5c6861;
+  margin: 0;
+}
+
+.location-header-actions {
+  display: flex;
+  align-items: center;
+}
+
+.location-route-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  text-decoration: none;
+  background: linear-gradient(135deg, var(--green-800), var(--green-900));
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(13, 45, 38, 0.2);
+  transition: all 0.25s var(--ease-spring);
+}
+
+.location-route-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(13, 45, 38, 0.28);
+  color: #ffffff;
+}
+
+.property-location-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 24px;
+  align-items: stretch;
+}
+
+@media (max-width: 900px) {
+  .property-location-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.property-map-card {
+  display: flex;
+  flex-direction: column;
+  background: #fbf9f5;
+  border: 1px solid #e8e3d9;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.property-map-container {
+  position: relative;
+  width: 100%;
+  height: 340px;
+  background: #e5e3df;
+}
+
+.property-google-iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+.property-map-overlay-badge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--green-900);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(228, 189, 114, 0.4);
+}
+
+.map-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green-700);
+  box-shadow: 0 0 0 3px rgba(34, 94, 78, 0.2);
+  animation: pulse-dot 2s infinite ease-in-out;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.25); opacity: 0.8; }
+}
+
+.property-map-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #ffffff;
+  border-top: 1px solid #eee8dc;
+  font-size: 12px;
+}
+
+.map-coords-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #6b756f;
+}
+
+.map-coords-info code {
+  font-family: monospace;
+  background: #f4f1ea;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--green-900);
+  font-size: 11.5px;
+}
+
+.map-view-fullscreen-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--green-800);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.map-view-fullscreen-link:hover {
+  color: var(--gold-dark, #b58934);
+  text-decoration: underline;
+}
+
+/* Painel de Pontos de Interesse (POIs) */
+.property-pois-card {
+  display: flex;
+  flex-direction: column;
+  background: #faf8f5;
+  border: 1px solid #e8e3d9;
+  border-radius: 12px;
+  padding: 18px;
+}
+
+.pois-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  color: var(--green-900);
+  margin: 0 0 4px 0;
+  font-weight: 600;
+}
+
+.pois-header p {
+  font-size: 12.5px;
+  color: #6b756f;
+  margin: 0 0 14px 0;
+}
+
+.poi-categories-bar {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  scrollbar-width: thin;
+}
+
+.poi-category-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  background: #ffffff;
+  border: 1px solid #e0dacf;
+  color: #4a5550;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.poi-category-btn:hover {
+  background: #f4f0e6;
+  border-color: #c8bead;
+  color: var(--green-900);
+}
+
+.poi-category-btn.is-active {
+  background: var(--green-800);
+  border-color: var(--green-800);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(13, 45, 38, 0.18);
+}
+
+.poi-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.poi-item-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #ffffff;
+  border: 1px solid #eee8de;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.poi-item-card:hover {
+  border-color: rgba(198, 161, 91, 0.5);
+  box-shadow: 0 4px 10px rgba(13, 45, 38, 0.06);
+  transform: translateX(2px);
+}
+
+.poi-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #f0ebe1;
+  color: var(--green-800);
+  flex-shrink: 0;
+}
+
+.poi-category-education { background: #e8f0fe; color: #1a73e8; }
+.poi-category-convenience { background: #fef7e0; color: #b06000; }
+.poi-category-leisure { background: #e6f4ea; color: #137333; }
+.poi-category-health { background: #fce8e6; color: #c5221f; }
+.poi-category-dining { background: #f3e8fd; color: #8430ce; }
+
+.poi-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.poi-info h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--green-900);
+  margin: 0 0 2px 0;
+  line-height: 1.25;
+}
+
+.poi-info p {
+  font-size: 11.5px;
+  color: #6b756f;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.poi-distances {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.poi-distance-badge {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--green-900);
+  background: #f0ebe1;
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+.poi-times {
+  display: flex;
+  gap: 6px;
+  font-size: 10.5px;
+  color: #5c6861;
+}
+
+/* ==========================================================================
+   ESTILOS DE VALIDAÇÃO AUTOMÁTICA DE CEP & ENDEREÇO (CAPTAÇÃO & ADMIN)
+   ========================================================================== */
+
+.cep-auto-lookup-card {
+  background: linear-gradient(180deg, #fdfbf7 0%, #f7f4ed 100%);
+  border: 1.5px solid #dfd8c8;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  grid-column: 1 / -1;
+  box-shadow: 0 3px 10px rgba(13, 45, 38, 0.04);
+}
+
+.cep-lookup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.cep-lookup-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--green-900);
+}
+
+.cep-auto-tag {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #8b6b23;
+  background: #fbf0d8;
+  border: 1px solid #eec87e;
+  padding: 2px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cep-input-action-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.cep-input-action-row input {
+  max-width: 180px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  border-radius: 8px;
+  border: 1.5px solid #d4ccbd;
+  padding: 9px 12px;
+  background: #ffffff;
+}
+
+.cep-search-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 14px;
+  border-radius: 8px;
+  background: var(--green-800);
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cep-search-trigger-btn:hover {
+  background: var(--green-900);
+  transform: translateY(-1px);
+}
+
+.cep-search-trigger-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.cep-status-banner {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cep-status-loading {
+  background: #e8f0fe;
+  color: #1a73e8;
+  border: 1px solid #b3d4fc;
+}
+
+.cep-status-success {
+  background: #e6f4ea;
+  color: #137333;
+  border: 1px solid #b7e1cd;
+}
+
+.cep-status-error {
+  background: #fce8e6;
+  color: #c5221f;
+  border: 1px solid #f5c2c7;
+}
+
+.cep-coords-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  background: #ffffff;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid #cce5d6;
+  color: #0d4526;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+/* ==========================================================================
+   MELHORIAS DE INTERFACE: BRILHO EM BOTÕES, ANIMAÇÕES SUAVES E FIGURAS SUTIS
+   (Símbolos de Casa e Folhas com ~25% de transparência e efeitos de sobreposição)
+   ========================================================================== */
+
+/* 1. Efeitos de Sobreposição, Brilho & Shimmer nos Botões */
+.button {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.22s ease,
+              border-color 0.22s ease,
+              box-shadow 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.2s ease;
+}
+
+/* Feixe de luz suave deslizando no botão ao passar o cursor */
+.button::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -80%;
+  width: 50%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.28) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(25deg);
+  transition: left 0.7s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 3;
+}
+
+.button:hover::after {
+  left: 140%;
+  opacity: 1;
+}
+
+.button:active {
+  transform: scale(0.98) translateY(1px);
+}
+
+/* Botão Primário (Verde Nobre Esmeralda com Aura de Brilho) */
+.button-primary {
+  background: linear-gradient(135deg, #19493d 0%, #12392f 100%);
+  box-shadow: 0 4px 14px rgba(18, 57, 47, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.button-primary:hover {
+  background: linear-gradient(135deg, #225e4e 0%, #154539 100%);
+  box-shadow: 0 8px 24px rgba(18, 57, 47, 0.38),
+              0 0 18px rgba(198, 161, 91, 0.22),
+              inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+/* Botão Ouro / Champagne com Brilho Radiante */
+.button-gold {
+  color: #0d2d26;
+  background: linear-gradient(135deg, #e3c98e 0%, #d7b875 100%);
+  box-shadow: 0 4px 16px rgba(159, 122, 56, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(198, 161, 91, 0.3);
+}
+
+.button-gold:hover {
+  background: linear-gradient(135deg, #ebd49f 0%, #dfc382 100%);
+  box-shadow: 0 8px 28px rgba(159, 122, 56, 0.38),
+              0 0 22px rgba(215, 182, 109, 0.42),
+              inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  transform: translateY(-2px);
+}
+
+/* Botão Claro / Branco Nobre */
+.button-light {
+  color: var(--green-950);
+  background: #ffffff;
+  box-shadow: 0 4px 14px rgba(13, 45, 38, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(13, 45, 38, 0.08);
+}
+
+.button-light:hover {
+  background: #ffffff;
+  box-shadow: 0 8px 26px rgba(13, 45, 38, 0.2),
+              0 0 16px rgba(255, 255, 255, 0.6),
+              inset 0 1px 0 #ffffff;
+  transform: translateY(-2px);
+}
+
+/* Botão Outline */
+.button-outline {
+  border: 1.5px solid rgba(34, 94, 78, 0.35);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 2px 8px rgba(18, 57, 47, 0.03);
+}
+
+.button-outline:hover {
+  border-color: var(--green-700);
+  background: var(--green-50);
+  box-shadow: 0 6px 18px rgba(34, 94, 78, 0.14), 0 0 10px rgba(198, 161, 91, 0.12);
+  transform: translateY(-2px);
+}
+
+/* 2. Efeitos de Sobreposição e Profundidade no Quick Search & Cards */
+.quick-search {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(215, 182, 109, 0.28);
+  border-top: 3px solid #d7b875;
+  box-shadow: 0 20px 48px rgba(13, 45, 38, 0.13), 0 2px 8px rgba(13, 45, 38, 0.04);
+  border-radius: 18px;
+  transition: box-shadow 0.26s ease, transform 0.26s ease;
+}
+
+.quick-search:hover {
+  box-shadow: 0 24px 54px rgba(13, 45, 38, 0.16), 0 4px 12px rgba(13, 45, 38, 0.06);
+}
+
+.property-card {
+  position: relative;
+  background: #ffffff;
+  border-radius: var(--radius);
+  border: 1px solid rgba(13, 45, 38, 0.08);
+  box-shadow: 0 6px 20px rgba(18, 57, 47, 0.05), 0 1px 3px rgba(18, 57, 47, 0.03);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.24s ease;
+}
+
+.property-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(198, 161, 91, 0.45);
+  box-shadow: 0 18px 42px rgba(18, 57, 47, 0.12),
+              0 4px 12px rgba(18, 57, 47, 0.05),
+              0 0 0 1px rgba(198, 161, 91, 0.16);
+}
+
+.service-card {
+  position: relative;
+  background: linear-gradient(180deg, #ffffff 0%, #f9f7f2 100%);
+  border: 1px solid rgba(223, 229, 225, 0.85);
+  box-shadow: 0 8px 24px rgba(18, 57, 47, 0.04);
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.24s ease;
+  overflow: hidden;
+}
+
+.service-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(198, 161, 91, 0.4);
+  box-shadow: 0 14px 34px rgba(18, 57, 47, 0.09), 0 2px 6px rgba(18, 57, 47, 0.03);
+}
+
+.guided-cta {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 18px 44px rgba(13, 45, 38, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(198, 161, 91, 0.22);
+}
+
+.local-cta {
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 8px 24px rgba(159, 122, 56, 0.12);
+}
+
+/* 3. Figuras e Elementos Decorativos Sutis Inspirados nas Referências (Transparência ~20-25%) */
+.decorative-watermark {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  z-index: 1;
+}
+
+/* Onda Fluida Dourada (Imagem 7) */
+.hero-golden-wave {
+  top: 15%;
+  right: -5%;
+  opacity: 0.22 !important;
+  animation: waveFloat 14s ease-in-out infinite alternate;
+}
+
+.guided-golden-wave {
+  bottom: -40px;
+  right: -20px;
+  opacity: 0.24 !important;
+}
+
+.local-cta-wave {
+  top: -30px;
+  left: -40px;
+  opacity: 0.20 !important;
+  animation: waveFloat 12s ease-in-out infinite alternate-reverse;
+}
+
+.page-banner-wave {
+  bottom: -20px;
+  right: -20px;
+  opacity: 0.18 !important;
+}
+
+/* Folhagem Tropical Dourada (Imagem 6) */
+.hero-golden-leaves {
+  top: 4%;
+  right: 6%;
+  opacity: 0.20 !important;
+  animation: subtleFloat 10s ease-in-out infinite alternate;
+}
+
+.guided-golden-leaves {
+  top: -15px;
+  right: 15px;
+  opacity: 0.22 !important;
+  animation: subtleSway 9s ease-in-out infinite alternate;
+}
+
+.contact-golden-leaves {
+  top: 8%;
+  right: 4%;
+  opacity: 0.20 !important;
+  animation: subtleFloat 11s ease-in-out infinite alternate;
+}
+
+/* Composição Orgânica Abstrata com Manchas & Botânica (Imagens 1 e 3) */
+.hero-botanical-art {
+  top: 18%;
+  left: 2%;
+  opacity: 0.24 !important;
+  animation: subtleFloat 11s ease-in-out infinite alternate;
+}
+
+.services-botanical-art {
+  top: 6%;
+  right: 2%;
+  opacity: 0.20 !important;
+  animation: subtleSway 12s ease-in-out infinite alternate;
+}
+
+.about-botanical-bg {
+  bottom: 5%;
+  right: 4%;
+  opacity: 0.18 !important;
+}
+
+.contact-botanical-bg {
+  bottom: 8%;
+  left: 3%;
+  opacity: 0.18 !important;
+}
+
+.aside-watermark-bottom {
+  right: -20px;
+  bottom: -25px;
+  opacity: 0.22 !important;
+}
+
+/* Ramo Botânico Fino & Horizontal (Imagens 2 e 4) */
+.section-botanical-bg {
+  top: 2%;
+  right: 2%;
+  opacity: 0.16 !important;
+  animation: subtleSway 14s ease-in-out infinite alternate;
+}
+
+.local-cta-branch {
+  bottom: -15px;
+  right: 2%;
+  opacity: 0.22 !important;
+}
+
+.page-banner-watermark-right {
+  top: 25%;
+  right: 3%;
+  opacity: 0.22 !important;
+}
+
+.page-banner-watermark-left {
+  top: 18%;
+  left: 3%;
+  opacity: 0.22 !important;
+}
+
+/* Emblemas Arquitetônicos & Eco Real Estate (Imagem 8) */
+.service-card-watermark {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  opacity: 0.20 !important;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+}
+
+.service-card:hover .service-card-watermark {
+  transform: scale(1.08) translateY(-2px);
+  opacity: 0.32 !important;
+}
+
+/* 4. Animações Suaves */
+@keyframes waveFloat {
+  0% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-10px) scale(1.03) rotate(1deg);
+  }
+  100% {
+    transform: translateY(0px) scale(1);
+  }
+}
+
+@keyframes subtleFloat {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(1.5deg);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+}
+
+@keyframes subtleSway {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(2deg) scale(1.02);
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+/* Header sticky suave com blur de vidro fosco */
+.site-header {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background: rgba(251, 250, 247, 0.94);
+  border-bottom: 1px solid rgba(13, 45, 38, 0.08);
+  box-shadow: 0 4px 20px rgba(13, 45, 38, 0.04), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
 /* Regressões pontuais da Assistente: temas, transições e editor do WhatsApp. */
 .assistant-theme-root {
   transition: color .5s ease, background .5s ease;
@@ -1814,3 +2976,7 @@
     transform: none !important;
   }
 }
+
+
+
+

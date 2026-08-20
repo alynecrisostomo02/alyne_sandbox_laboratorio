@@ -1,4 +1,4 @@
-﻿node_modules/
+node_modules/
 .next/
 .vinext/
 dist/
@@ -11,5 +11,4 @@ dist/
 *.zip
 *.log
 
-backup-assistente-crisostomo/
 ai-studio-project-copy/

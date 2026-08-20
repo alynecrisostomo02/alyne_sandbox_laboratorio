@@ -1,11 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { typeLabels } from "../properties";
 import { currency, navigate, whatsappFor } from "../utils";
 import { hasNumericPrice, isRecommendableProperty, propertyBedroomTotal, propertyHasFeature } from "../propertyStatus";
 import { Icon } from "./Icons";
 import PropertyCard from "./PropertyCard";
+import {
+  OrganicBotanicalAbstract,
+  FineBotanicalBranch,
+  GoldenFluidWave,
+  RealEstateEcoEmblem,
+} from "./DecorativeElements";
 
 const initialAnswers = {
   purpose: "",
@@ -29,15 +36,8 @@ function matchesLocationPreference(property, preference) {
 
 export default function Recommender({ properties, favorites, onFavorite }) {
   const [step, setStep] = useState(0);
-  const [transitionDirection, setTransitionDirection] = useState("forward");
-  const [isStepExiting, setIsStepExiting] = useState(false);
   const [answers, setAnswers] = useState(initialAnswers);
   const [finished, setFinished] = useState(false);
-  const stepTimerRef = useRef(null);
-
-  useEffect(() => () => {
-    if (stepTimerRef.current) window.clearTimeout(stepTimerRef.current);
-  }, []);
 
   const questions = [
     {
@@ -131,21 +131,7 @@ export default function Recommender({ properties, favorites, onFavorite }) {
     };
   }, [answers, finished, properties]);
 
-  function changeStep(nextStep) {
-    const boundedStep = Math.max(0, Math.min(questions.length - 1, nextStep));
-    if (boundedStep === step || isStepExiting) return;
-    setTransitionDirection(boundedStep > step ? "forward" : "back");
-    setIsStepExiting(true);
-    if (stepTimerRef.current) window.clearTimeout(stepTimerRef.current);
-    stepTimerRef.current = window.setTimeout(() => {
-      setStep(boundedStep);
-      setIsStepExiting(false);
-      stepTimerRef.current = null;
-    }, 180);
-  }
-
   function choose(value) {
-    if (isStepExiting) return;
     const question = questions[step];
     if (question.multi) {
       setAnswers((current) => ({
@@ -157,7 +143,7 @@ export default function Recommender({ properties, favorites, onFavorite }) {
       return;
     }
     setAnswers((current) => ({ ...current, [question.key]: value }));
-    if (step < questions.length - 1) changeStep(step + 1);
+    if (step < questions.length - 1) setStep((current) => current + 1);
   }
 
   function complete() {
@@ -166,11 +152,8 @@ export default function Recommender({ properties, favorites, onFavorite }) {
   }
 
   function restart() {
-    if (stepTimerRef.current) window.clearTimeout(stepTimerRef.current);
     setAnswers(initialAnswers);
     setStep(0);
-    setTransitionDirection("forward");
-    setIsStepExiting(false);
     setFinished(false);
   }
 
@@ -178,8 +161,11 @@ export default function Recommender({ properties, favorites, onFavorite }) {
     const displayed = result.exact.length ? result.exact : result.nearby;
     return (
       <main className="recommender-page">
-        <section className="page-banner compact">
-          <div className="container result-banner">
+        <section className="page-banner compact relative overflow-hidden">
+          <GoldenFluidWave className="page-banner-wave" size={420} opacity={0.22} />
+          <FineBotanicalBranch className="page-banner-watermark-right" size={130} opacity={0.22} color="#d7b875" variant="horizontal" />
+          <RealEstateEcoEmblem className="page-banner-watermark-left" size={110} opacity={0.24} variant="heart" color="#c6a15b" />
+          <div className="container result-banner relative" style={{ zIndex: 2 }}>
             <div>
               <p className="eyebrow">Resultado da busca guiada</p>
               <h1>{result.exact.length ? "Encontramos boas combinações." : "Encontramos opções próximas."}</h1>
@@ -204,14 +190,17 @@ export default function Recommender({ properties, favorites, onFavorite }) {
             </div>
             {displayed.length > 0 ? (
               <div className="property-grid">
-                {displayed.map((property) => (
-                  <PropertyCard
-                    key={property.id}
-                    property={property}
-                    favorite={favorites.includes(property.id)}
-                    onFavorite={onFavorite}
-                  />
-                ))}
+                <AnimatePresence>
+                  {displayed.map((property, idx) => (
+                    <PropertyCard
+                      key={property.id}
+                      index={idx}
+                      property={property}
+                      favorite={favorites.includes(property.id)}
+                      onFavorite={onFavorite}
+                    />
+                  ))}
+                </AnimatePresence>
               </div>
             ) : (
               <div className="empty-state">
@@ -240,19 +229,20 @@ export default function Recommender({ properties, favorites, onFavorite }) {
   return (
     <main className="recommender-page">
       <section className="recommender-shell">
-        <div className="recommender-aside">
-          <button className="brand brand-inverse" type="button" onClick={() => navigate("#/")}>
+        <div className="recommender-aside relative overflow-hidden">
+          <OrganicBotanicalAbstract className="aside-watermark-bottom" size={220} opacity={0.22} variant="gold" />
+          <button className="brand brand-inverse relative" style={{ zIndex: 2 }} type="button" onClick={() => navigate("#/")}>
             <span className="context-brand-logo" aria-hidden="true">
               <img src="/branding/logo-alyne-padrao.jpg" alt="" />
             </span>
             <span><strong>Busca guiada</strong><small>Imóveis em Redenção</small></span>
           </button>
-          <div>
+          <div className="relative" style={{ zIndex: 2 }}>
             <p className="eyebrow">Passo {step + 1} de {questions.length}</p>
             <h1>Vamos encontrar as melhores opções para você.</h1>
             <p>Uma pergunta por vez, sem cadastros e sem guardar dados pessoais.</p>
           </div>
-          <button className="back-site-link" type="button" onClick={() => navigate("#/imoveis")}>
+          <button className="back-site-link relative" style={{ zIndex: 2 }} type="button" onClick={() => navigate("#/imoveis")}>
             Voltar ao catálogo
           </button>
         </div>
@@ -260,10 +250,7 @@ export default function Recommender({ properties, favorites, onFavorite }) {
           <div className="progress-track" role="progressbar" aria-label="Progresso da busca guiada" aria-valuemin="1" aria-valuemax={questions.length} aria-valuenow={step + 1}>
             <span style={{ width: `${((step + 1) / questions.length) * 100}%` }} />
           </div>
-          <div
-            key={step}
-            className={`question-card assistant-step-transition assistant-step-${transitionDirection} ${isStepExiting ? "assistant-step-exit" : "assistant-step-enter"}`}
-          >
+          <div className="question-card">
             <span className="question-step">0{step + 1}</span>
             <h2>{current.title}</h2>
             <p>{current.hint}</p>
@@ -277,7 +264,6 @@ export default function Recommender({ properties, favorites, onFavorite }) {
                     className={active ? "selected" : ""}
                     aria-pressed={active}
                     onClick={() => choose(value)}
-                    disabled={isStepExiting}
                   >
                     <span>{label}</span>
                     <i><Icon name={active ? "check" : "arrow"} size={17} /></i>
@@ -286,7 +272,7 @@ export default function Recommender({ properties, favorites, onFavorite }) {
               })}
             </div>
             <div className="question-actions">
-              <button className="button button-ghost" type="button" disabled={step === 0 || isStepExiting} onClick={() => changeStep(step - 1)}>
+              <button className="button button-ghost" type="button" disabled={step === 0} onClick={() => setStep((currentStep) => Math.max(0, currentStep - 1))}>
                 Voltar
               </button>
               {current.multi ? (

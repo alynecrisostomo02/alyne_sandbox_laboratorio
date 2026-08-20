@@ -1,11 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { purposeLabels, typeLabels } from "../properties";
 import { navigate, propertyArea, whatsappFor } from "../utils";
 import { hasNumericPrice, isCatalogProperty, propertyBedroomTotal, propertyHasFeature, propertyStatus } from "../propertyStatus";
 import { Icon } from "./Icons";
 import PropertyCard from "./PropertyCard";
+import {
+  OrganicBotanicalAbstract,
+  FineBotanicalBranch,
+  GoldenFluidWave,
+  RealEstateEcoEmblem,
+} from "./DecorativeElements";
 
 const emptyFilters = {
   purpose: "",
@@ -132,8 +139,11 @@ export default function Catalog({ properties, favorites, onFavorite, query }) {
 
   return (
     <main className="catalog-page">
-      <section className="page-banner">
-        <div className="container">
+      <section className="page-banner relative overflow-hidden">
+        <GoldenFluidWave className="page-banner-wave" size={480} opacity={0.20} />
+        <FineBotanicalBranch className="page-banner-watermark-right" size={160} opacity={0.22} color="#d7b875" variant="horizontal" />
+        <RealEstateEcoEmblem className="page-banner-watermark-left" size={130} opacity={0.22} variant="eco-leaf" color="#c6a15b" />
+        <div className="container relative" style={{ zIndex: 2 }}>
           <p className="eyebrow">Catálogo imobiliário</p>
           <h1>Imóveis em Redenção</h1>
           <p>Explore as opções e ajuste os filtros de acordo com o que você procura.</p>
@@ -277,18 +287,27 @@ export default function Catalog({ properties, favorites, onFavorite, query }) {
             </div>
 
             {filtered.length > 0 ? (
-              <div className="property-grid catalog-grid">
-                {filtered.map((property) => (
-                  <PropertyCard
-                    key={property.id}
-                    property={property}
-                    favorite={favorites.includes(property.id)}
-                    onFavorite={onFavorite}
-                  />
-                ))}
-              </div>
+              <motion.div layout className="property-grid catalog-grid">
+                <AnimatePresence mode="popLayout">
+                  {filtered.map((property, idx) => (
+                    <PropertyCard
+                      key={property.id}
+                      index={idx}
+                      property={property}
+                      favorite={favorites.includes(property.id)}
+                      onFavorite={onFavorite}
+                    />
+                  ))}
+                </AnimatePresence>
+              </motion.div>
             ) : (
-              <div className="empty-state">
+              <motion.div
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.28 }}
+                className="empty-state"
+              >
                 <span className="empty-icon"><Icon name="search" size={28} /></span>
                 <h2>Nenhum imóvel encontrado</h2>
                 <p>Tente remover alguns filtros ou conte o que você procura para nossa equipe.</p>
@@ -300,7 +319,7 @@ export default function Catalog({ properties, favorites, onFavorite, query }) {
                     <Icon name="whatsapp" size={18} /> Falar no WhatsApp
                   </a>
                 </div>
-              </div>
+              </motion.div>
             )}
           </div>
         </div>

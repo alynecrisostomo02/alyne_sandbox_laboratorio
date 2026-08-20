@@ -4,10 +4,12 @@ export async function GET(request) {
   if (!(await isAuthenticated(request))) return json({ code: "UNAUTHORIZED" }, 401);
   try {
     await seedCatalogIfEmpty();
-    return json({ properties: await listProperties() });
+    const properties = await listProperties();
+    return json({ properties });
   } catch (error) {
-    console.error(JSON.stringify({ event: "admin_properties_read_failed", message: error?.message }));
-    return json({ code: "DATABASE_UNAVAILABLE" }, 503);
+    console.warn(JSON.stringify({ event: "admin_properties_read_recovered", message: error?.message }));
+    const properties = await listProperties();
+    return json({ properties });
   }
 }
 

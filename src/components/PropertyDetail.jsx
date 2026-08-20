@@ -10,8 +10,10 @@ import {
   propertyReference,
   propertyStatus,
 } from "../propertyStatus";
+import { downloadPropertyPdf } from "../propertyPdf";
 import { Icon } from "./Icons";
 import PropertyVisual from "./PropertyVisual";
+import PropertyLocationMap from "./PropertyLocationMap";
 
 const typeNames = {
   casa: "Casa",
@@ -67,6 +69,7 @@ function dimensionLabel(value) {
 
 export default function PropertyDetail({ property, favorite, onFavorite, onToast }) {
   const [imageIndex, setImageIndex] = useState(0);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   useEffect(() => {
     setImageIndex(0);
@@ -84,6 +87,23 @@ export default function PropertyDetail({ property, favorite, onFavorite, onToast
         </div>
       </main>
     );
+  }
+
+  async function handleDownloadPdf() {
+    if (isGeneratingPdf) return;
+    setIsGeneratingPdf(true);
+    onToast?.("Gerando PDF com a ficha técnica do imóvel...");
+    try {
+      await downloadPropertyPdf(property, (msg) => {
+        if (msg) onToast?.(msg);
+      });
+      onToast?.("PDF baixado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
+      onToast?.("Não foi possível gerar o PDF. Tente novamente.");
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   }
 
   async function share() {
@@ -222,6 +242,16 @@ export default function PropertyDetail({ property, favorite, onFavorite, onToast
                   <Icon name="heart" />
                 </button>
               )}
+              <button
+                className="icon-action"
+                type="button"
+                onClick={handleDownloadPdf}
+                disabled={isGeneratingPdf}
+                aria-label="Baixar ficha do imóvel em PDF"
+                title="Baixar ficha técnica em PDF"
+              >
+                <Icon name={isGeneratingPdf ? "spark" : "pdf"} />
+              </button>
               <button className="icon-action" type="button" onClick={share} aria-label="Compartilhar imóvel">
                 <Icon name="share" />
               </button>
@@ -241,6 +271,19 @@ export default function PropertyDetail({ property, favorite, onFavorite, onToast
               ))}
             </div>
           )}
+
+          <div className="detail-pdf-banner">
+            <button
+              type="button"
+              className="button button-outline detail-pdf-btn"
+              onClick={handleDownloadPdf}
+              disabled={isGeneratingPdf}
+            >
+              <Icon name={isGeneratingPdf ? "spark" : "pdf"} size={18} />
+              <strong>{isGeneratingPdf ? "Gerando PDF..." : "Baixar Ficha Técnica em PDF"}</strong>
+            </button>
+            <span>Dossiê completo formatado para impressão com fotos, medidas e especificações.</span>
+          </div>
 
           {description && (
             <div className="detail-section">
@@ -282,6 +325,9 @@ export default function PropertyDetail({ property, favorite, onFavorite, onToast
               </div>
             </div>
           )}
+
+          {/* Localização & Proximidades no Google Maps */}
+          <PropertyLocationMap property={property} />
         </div>
 
         <aside className={`interest-card interest-${status.key}`}>
@@ -325,6 +371,9 @@ export default function PropertyDetail({ property, favorite, onFavorite, onToast
           )}
 
           <div className="interest-secondary">
+            <button type="button" onClick={handleDownloadPdf} disabled={isGeneratingPdf} title="Baixar ficha técnica em PDF">
+              <Icon name={isGeneratingPdf ? "spark" : "pdf"} size={17} /> {isGeneratingPdf ? "Gerando PDF..." : "Baixar ficha em PDF"}
+            </button>
             {status.favorite && (
               <button type="button" onClick={() => onFavorite(property.id)} aria-pressed={favorite}>
                 <Icon name="heart" size={17} /> {favorite ? "Salvo nos favoritos" : "Salvar favorito"}

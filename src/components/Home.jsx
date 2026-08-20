@@ -1,11 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { AnimatePresence } from "motion/react";
 import { typeLabels } from "../properties";
 import { navigate, whatsappFor } from "../utils";
 import { isHomeProperty } from "../propertyStatus";
 import { Icon } from "./Icons";
 import PropertyCard from "./PropertyCard";
+import {
+  OrganicBotanicalAbstract,
+  FineBotanicalBranch,
+  GoldenFluidWave,
+  GoldenTropicalLeaves,
+  RealEstateEcoEmblem,
+} from "./DecorativeElements";
 
 export default function Home({ properties, favorites, onFavorite }) {
   const [quick, setQuick] = useState({
@@ -34,10 +42,16 @@ export default function Home({ properties, favorites, onFavorite }) {
     .slice(0, 3);
 
   return (
-    <main>
-      <section className="hero">
+    <main className="site-main">
+      <section className="hero relative overflow-hidden">
         <div className="hero-pattern" aria-hidden="true" />
-        <div className="container hero-grid">
+        
+        {/* Elementos Visuais Inspirados nas Referências: Onda Fluida Dourada & Composição Orgânica */}
+        <GoldenFluidWave className="hero-golden-wave" size={560} opacity={0.22} />
+        <GoldenTropicalLeaves className="hero-golden-leaves" size={170} opacity={0.20} />
+        <OrganicBotanicalAbstract className="hero-botanical-art" size={200} opacity={0.24} variant="sage" />
+        
+        <div className="container hero-grid relative" style={{ zIndex: 2 }}>
           <div className="hero-copy">
             <p className="eyebrow">Imóveis em Redenção – PA</p>
             <h1>Encontre o imóvel certo para o seu momento.</h1>
@@ -69,7 +83,7 @@ export default function Home({ properties, favorites, onFavorite }) {
             </div>
           </div>
         </div>
-        <div className="container">
+        <div className="container relative" style={{ zIndex: 3 }}>
           <form className="quick-search" onSubmit={search}>
             <div>
               <label htmlFor="quick-purpose">Comprar ou alugar</label>
@@ -116,8 +130,9 @@ export default function Home({ properties, favorites, onFavorite }) {
         </div>
       </section>
 
-      <section className="section">
-        <div className="container">
+      <section className="section section-featured relative overflow-hidden">
+        <FineBotanicalBranch className="section-botanical-bg" size={260} opacity={0.16} color="#225e4e" variant="horizontal" />
+        <div className="container relative" style={{ zIndex: 2 }}>
           <div className="section-heading split-heading">
             <div>
               <p className="eyebrow dark">Seleção inicial</p>
@@ -129,20 +144,24 @@ export default function Home({ properties, favorites, onFavorite }) {
             </button>
           </div>
           <div className="property-grid">
-            {featured.map((property) => (
-              <PropertyCard
-                key={property.id}
-                property={property}
-                favorite={favorites.includes(property.id)}
-                onFavorite={onFavorite}
-              />
-            ))}
+            <AnimatePresence>
+              {featured.map((property, idx) => (
+                <PropertyCard
+                  key={property.id}
+                  index={idx}
+                  property={property}
+                  favorite={favorites.includes(property.id)}
+                  onFavorite={onFavorite}
+                />
+              ))}
+            </AnimatePresence>
           </div>
         </div>
       </section>
 
-      <section className="section section-soft">
-        <div className="container service-grid">
+      <section className="section section-soft section-services relative overflow-hidden">
+        <OrganicBotanicalAbstract className="services-botanical-art" size={210} opacity={0.20} variant="warm" />
+        <div className="container service-grid relative" style={{ zIndex: 2 }}>
           <div className="service-intro">
             <p className="eyebrow dark">Uma busca mais simples</p>
             <h2>Clareza em cada etapa.</h2>
@@ -152,16 +171,22 @@ export default function Home({ properties, favorites, onFavorite }) {
             </p>
           </div>
           <article className="service-card">
+            {/* Ícone Arquitetônico com Casa e Folha Eco (Ref Imagem 8) */}
+            <RealEstateEcoEmblem className="service-card-watermark" size={85} opacity={0.22} variant="eco-leaf" color="#c6a15b" />
             <span className="number">01</span>
             <h3>Opções organizadas</h3>
             <p>Dados objetivos para comparar imóveis sem excesso de informação.</p>
           </article>
           <article className="service-card">
+            {/* Ícone Casa com Coração - Acolhimento Humano (Ref Imagem 8) */}
+            <RealEstateEcoEmblem className="service-card-watermark" size={85} opacity={0.22} variant="heart" color="#225e4e" />
             <span className="number">02</span>
             <h3>Atendimento humano</h3>
             <p>Conversa direta pelo WhatsApp, com uma mensagem já preparada.</p>
           </article>
           <article className="service-card">
+            {/* Ícone Casa com Pin de Localização em Redenção (Ref Imagem 8) */}
+            <RealEstateEcoEmblem className="service-card-watermark" size={85} opacity={0.22} variant="location" color="#c6a15b" />
             <span className="number">03</span>
             <h3>Conhecimento local</h3>
             <p>Uma experiência pensada para quem busca imóveis em Redenção.</p>
@@ -169,21 +194,27 @@ export default function Home({ properties, favorites, onFavorite }) {
         </div>
       </section>
 
-      <section className="section">
-        <div className="container guided-cta">
-          <div>
+      <section className="section section-guided">
+        <div className="container guided-cta relative overflow-hidden">
+          <GoldenFluidWave className="guided-golden-wave" size={460} opacity={0.24} />
+          <GoldenTropicalLeaves className="guided-golden-leaves" size={170} opacity={0.22} />
+          
+          <div style={{ position: "relative", zIndex: 2 }}>
             <p className="eyebrow">Busca guiada</p>
             <h2>Não sabe por onde começar?</h2>
             <p>Responda seis perguntas rápidas e veja as opções mais compatíveis.</p>
           </div>
-          <button className="button button-gold" type="button" onClick={() => navigate("#/encontrar")}>
+          <button className="button button-gold" type="button" onClick={() => navigate("#/encontrar")} style={{ position: "relative", zIndex: 2 }}>
             Vamos encontrar <Icon name="arrow" size={18} />
           </button>
         </div>
       </section>
 
-      <section className="local-cta">
-        <div className="container local-cta-inner">
+      <section className="local-cta relative overflow-hidden">
+        <GoldenFluidWave className="local-cta-wave" size={480} opacity={0.20} />
+        <FineBotanicalBranch className="local-cta-branch" size={180} opacity={0.22} color="#0d2d26" variant="horizontal" />
+        
+        <div className="container local-cta-inner" style={{ position: "relative", zIndex: 2 }}>
           <div>
             <p className="eyebrow">Atendimento em Redenção</p>
             <h2>Seu próximo passo começa com uma boa conversa.</h2>
@@ -196,4 +227,3 @@ export default function Home({ properties, favorites, onFavorite }) {
     </main>
   );
 }
-

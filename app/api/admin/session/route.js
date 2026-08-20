@@ -12,7 +12,13 @@ export async function GET(request) {
 export async function POST(request) {
   if (!sameOrigin(request)) return json({ code: "ORIGIN_NOT_ALLOWED" }, 403);
   try {
-    const limiter = env.ADMIN_LOGIN_RATE_LIMITER;
+    let limiter = null;
+    try {
+      if (typeof env !== "undefined" && env?.ADMIN_LOGIN_RATE_LIMITER) {
+        limiter = env.ADMIN_LOGIN_RATE_LIMITER;
+      }
+    } catch {}
+
     if (limiter) {
       const key = request.headers.get("CF-Connecting-IP") || "local";
       const result = await limiter.limit({ key: `admin-login:${key}` });
@@ -20,7 +26,8 @@ export async function POST(request) {
     }
     const body = await readJson(request, 2_000);
     if (!credentialsMatch(body?.email, body?.password)) return json({ code: "INVALID_CREDENTIALS" }, 401);
-    return json({ authenticated: true }, 200, { "Set-Cookie": await createSessionCookie(request) });
+    const { token, cookie } = await createSessionCookie(request);
+    return json({ authenticated: true, token }, 200, { "Set-Cookie": cookie });
   } catch (error) {
     return json({ code: error?.message === "ADMIN_SESSION_NOT_CONFIGURED" ? "ADMIN_NOT_CONFIGURED" : "INVALID_REQUEST" }, 503);
   }

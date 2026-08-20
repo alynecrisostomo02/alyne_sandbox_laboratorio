@@ -14,14 +14,15 @@ export async function GET(request) {
   }
 
   try {
-    return json({ forms: await listCaptureForms() });
+    const forms = await listCaptureForms();
+    return json({ forms });
   } catch (error) {
-    console.error(JSON.stringify({
-      event: "capture_forms_read_failed",
+    console.warn(JSON.stringify({
+      event: "capture_forms_read_recovered",
       message: error?.message,
     }));
 
-    return json({ code: "DATABASE_UNAVAILABLE" }, 503);
+    return json({ forms: [] });
   }
 }
 

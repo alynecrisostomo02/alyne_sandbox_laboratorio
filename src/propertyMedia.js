@@ -207,17 +207,9 @@ export const propertyMedia = Object.freeze({
   ],
   "REF-029": [
     {
-      "src": "/imoveis/ref-029/ref-029-capa-site-logo.png",
-      "alt": "Área externa e espaço gourmet da casa no Setor Marechal Rondon",
-      "label": "Capa",
-      "fit": "cover",
-      "position": "center",
-      "logoVerified": true
-    },
-    {
       "src": "/imoveis/ref-029/ref-029-01-logo.webp",
       "alt": "Sala clara e integrada da casa no Setor Marechal Rondon",
-      "label": "Foto 01",
+      "label": "Capa",
       "fit": "cover",
       "position": "center",
       "logoVerified": true
