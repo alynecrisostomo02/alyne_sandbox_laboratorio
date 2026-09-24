@@ -26,11 +26,21 @@ function readFavorites(properties) {
   }
 }
 
-function currentHash() {
+function currentPath() {
   if (typeof window === "undefined") return { path: "/", query: "" };
-  const raw = window.location.hash.replace(/^#/, "") || "/";
-  const [path, query = ""] = raw.split("?");
-  return { path: path.startsWith("/") ? path : `/${path}`, query };
+  // Check if we are still using hash based navigation
+  const hash = window.location.hash.replace(/^#/, "");
+  if (hash) {
+      const [path, query = ""] = hash.split("?");
+      // Update browser history seamlessly
+      const targetUrl = query ? (path.startsWith("/") ? `${path}?${query}` : `/${path}?${query}`) : (path.startsWith("/") ? path : `/${path}`);
+      window.history.replaceState(null, "", targetUrl);
+      return { path: path.startsWith("/") ? path : `/${path}`, query };
+  }
+
+  const path = window.location.pathname;
+  const query = window.location.search.replace(/^\?/, "");
+  return { path, query };
 }
 
 function skipToMainContent(event) {
@@ -55,14 +65,25 @@ export default function SiteApp() {
 
   useEffect(() => {
     const sync = () => {
-      setLocation(currentHash());
+      setLocation(currentPath());
       window.scrollTo({ top: 0, behavior: "auto" });
     };
     sync();
     setFavorites(readFavorites(fallbackProperties));
     setStorageReady(true);
+
+    // Support History API changes from Header links and back button
+    window.addEventListener("popstate", sync);
+    window.addEventListener("pushstate", sync);
+
+    // If the hash changes, we sync to support legacy #links
     window.addEventListener("hashchange", sync);
-    return () => window.removeEventListener("hashchange", sync);
+
+    return () => {
+        window.removeEventListener("popstate", sync);
+        window.removeEventListener("pushstate", sync);
+        window.removeEventListener("hashchange", sync);
+    };
   }, []);
 
   useEffect(() => {
