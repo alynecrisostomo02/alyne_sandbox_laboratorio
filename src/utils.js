@@ -43,11 +43,17 @@ export function propertyArea(property) {
   return property.builtArea || property.landArea || 0;
 }
 
-export function navigate(hash) {
+export function navigate(url) {
   if (typeof window === "undefined") return;
-  if (window.location.hash === hash) {
+
+  // if url is a hash like '#/imoveis', convert it to a path '/imoveis'
+  const target = url.startsWith('#') ? url.substring(1) : url;
+  const currentUrl = window.location.pathname + window.location.search;
+
+  if (currentUrl === target || currentUrl === target + '?' || target === currentUrl + '?') {
     window.scrollTo({ top: 0, behavior: "smooth" });
   } else {
-    window.location.hash = hash;
+    window.history.pushState(null, "", target);
+    window.dispatchEvent(new Event("pushstate"));
   }
 }
