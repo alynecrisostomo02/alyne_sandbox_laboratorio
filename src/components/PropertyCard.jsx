@@ -21,7 +21,7 @@ export default function PropertyCard({ property, favorite, onFavorite }) {
   return (
     <article className={`property-card property-card-${status.key}`}>
       <div className="card-media">
-        <PropertyVisual image={cover} title={property.title} />
+        <PropertyVisual image={cover} title={property.title} loading="lazy" />
         <span className="purpose-chip">
           {property.purpose === "venda" ? "Venda" : "Locação"}
         </span>

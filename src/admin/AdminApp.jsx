@@ -492,7 +492,7 @@ export default function AdminApp() {
       if (filter === "unavailable" && status !== "unavailable") return false;
       if (filter === "archived" && status !== "archived") return false;
       if (!term) return true;
-      return normalizeText([property.id, property.title, propertyPublicLocation(property)].join(" ")).includes(term);
+      return normalizeText([property.id, property.code || "", property.title, propertyPublicLocation(property)].join(" ")).includes(term);
     });
   }, [records, query, filter]);
 
@@ -654,6 +654,25 @@ export default function AdminApp() {
             <Icon name="search" size={20} />
             <span className="sr-only">Buscar imóveis</span>
             <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por referência, título ou localização" />
+            {query && (
+              <button
+                type="button"
+                className="clear-search-button"
+                onClick={() => setQuery("")}
+                aria-label="Limpar busca"
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: 'var(--muted)'
+                }}
+              >
+                ✕
+              </button>
+            )}
           </label>
           <label className="admin-filter">
             <Icon name="filter" size={19} />

@@ -138,7 +138,7 @@ export default function SiteApp() {
         Pular para o conteúdo
       </a>
       {isAssistant ? null : <Header route={location.path} />}
-      <div id="main-content" tabIndex={-1}>{content}</div>
+      <div id="main-content" tabIndex={-1} className="global-fade-in" key={location.path}>{content}</div>
       {isAssistant ? null : <Footer />}
       {isAssistant ? null : <AssistantLauncher />}
       <div className={`toast ${toast ? "show" : ""}`} role="status" aria-live="polite">
