@@ -20,7 +20,7 @@ export const metadata = {
   openGraph: {
     title: "Alyne Crisóstomo Imóveis | Redenção – PA",
     description:
-      "Encontre imóveis para venda e locação em Redenção – PA.",
+      "Encontre imóveis para venda e locação em Redenção – PA. Confira fotos exclusivas e agende sua visita.",
     url: "/",
     type: "website",
     locale: "pt_BR",
@@ -37,7 +37,7 @@ export const metadata = {
     card: "summary_large_image",
     title: "Alyne Crisóstomo Imóveis | Redenção – PA",
     description:
-      "Catálogo imobiliário em Redenção – PA, com atendimento direto.",
+      "Catálogo imobiliário em Redenção – PA. Confira fotos exclusivas e agende sua visita.",
     images: ["/branding/logo-alyne-padrao.jpg"],
   },
 };
