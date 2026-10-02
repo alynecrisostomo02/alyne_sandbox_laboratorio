@@ -254,7 +254,7 @@ export default function Catalog({ properties, favorites, onFavorite, query }) {
             </button>
           </aside>
 
-          <div className="catalog-results">
+          <div className="catalog-results" aria-live="polite">
             <div className="results-toolbar">
               <div>
                 <button ref={filtersButtonRef} className="button button-outline mobile-filter-button" type="button" aria-expanded={filtersOpen} aria-controls="catalog-filters" onClick={() => setFiltersOpen(true)}>
@@ -291,14 +291,14 @@ export default function Catalog({ properties, favorites, onFavorite, query }) {
               <div className="empty-state">
                 <span className="empty-icon"><Icon name="search" size={28} /></span>
                 <h2>Nenhum imóvel encontrado</h2>
-                <p>Tente remover alguns filtros ou conte o que você procura para nossa equipe.</p>
+                <p>Tente remover alguns filtros ou conte o que você procura para a Assistente.</p>
                 <div>
                   <button className="button button-outline" type="button" onClick={() => setFilters(emptyFilters)}>
                     Limpar filtros
                   </button>
-                  <a className="button button-primary" href={whatsappFor()} target="_blank" rel="noreferrer">
-                    <Icon name="whatsapp" size={18} /> Falar no WhatsApp
-                  </a>
+                  <button className="button button-primary" type="button" onClick={() => navigate("#/assistente")}>
+                    Ir para Busca Guiada
+                  </button>
                 </div>
               </div>
             )}
