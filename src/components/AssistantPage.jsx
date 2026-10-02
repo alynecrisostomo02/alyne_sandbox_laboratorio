@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { whatsappUrl } from "../config";
 import { navigate } from "../utils";
 import styles from "./AssistantPage.module.css";
+import { properties } from "../properties";
+import { propertyStatus, propertyBedroomTotal, hasNumericPrice } from "../propertyStatus";
 
 const TOTAL_STEPS = 6;
 
@@ -76,7 +78,42 @@ function buildLocalFallback(form) {
     : form.region;
   const name = form.clientName.trim();
   const features = form.features.length ? form.features.join(", ") : "Nenhum específico";
-  return `Olá, Alyne Crisóstomo! ${name ? `Meu nome é ${name}. ` : ""}Preenchi a Busca Guiada no site e gostaria de atendimento para ${form.purpose.toLowerCase()} (${form.propertyType}) em ${region}.\n\n• Orçamento: ${form.budget}\n• Quartos: ${form.bedrooms}\n• Suítes: ${form.suites}\n• Garagem: ${form.garage}\n• Diferenciais: ${features}${form.notes.trim() ? `\n• Observações: \"${form.notes.trim()}\"` : ""}`;
+
+  let purposeFilter = "";
+  if (form.purpose === "Comprar Imóvel") purposeFilter = "venda";
+  else if (form.purpose === "Alugar Imóvel") purposeFilter = "locacao";
+
+  const publicProperties = properties.filter((p) => {
+    const status = propertyStatus(p);
+    return status.recommender;
+  });
+
+  const matches = publicProperties.filter((p) => {
+    if (purposeFilter && p.purpose !== purposeFilter) return false;
+
+    // Very basic matching for fallback
+    let matchScore = 0;
+
+    if (form.region && p.neighborhood && p.neighborhood.toLowerCase().includes(form.region.toLowerCase())) matchScore += 2;
+    if (form.propertyType && p.type && form.propertyType.toLowerCase().includes(p.type.toLowerCase())) matchScore += 1;
+
+    return matchScore > 0 || publicProperties.length <= 3;
+  }).slice(0, 3);
+
+  const publicCurrency = new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    maximumFractionDigits: 0,
+  });
+
+  const matchesText = matches.length > 0
+    ? `\n\nImóveis que podem me interessar:\n` + matches.map(m => {
+        const priceStr = hasNumericPrice(m) ? publicCurrency.format(Number(m.price)) : "Valor sob consulta";
+        return `• ${m.title} (REF ${m.idRef || m.id}) - ${priceStr}`;
+      }).join("\n")
+    : "";
+
+  return `Olá, Alyne Crisóstomo! ${name ? `Meu nome é ${name}. ` : ""}Preenchi a Busca Guiada no site e gostaria de atendimento para ${form.purpose.toLowerCase()} (${form.propertyType}) em ${region}.\n\n• Orçamento: ${form.budget}\n• Quartos: ${form.bedrooms}\n• Suítes: ${form.suites}\n• Garagem: ${form.garage}\n• Diferenciais: ${features}${form.notes.trim() ? `\n• Observações: \"${form.notes.trim()}\"` : ""}${matchesText}`;
 }
 
 function ChoiceCard({ selected, title, description, onClick, compact = false }) {
