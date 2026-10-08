@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { whatsappUrl } from "../config";
 import { navigate } from "../utils";
 import styles from "./AssistantPage.module.css";
+import { properties } from "../properties";
+import { isCatalogProperty } from "../propertyStatus";
 
 const TOTAL_STEPS = 6;
 
@@ -76,7 +78,28 @@ function buildLocalFallback(form) {
     : form.region;
   const name = form.clientName.trim();
   const features = form.features.length ? form.features.join(", ") : "Nenhum específico";
-  return `Olá, Alyne Crisóstomo! ${name ? `Meu nome é ${name}. ` : ""}Preenchi a Busca Guiada no site e gostaria de atendimento para ${form.purpose.toLowerCase()} (${form.propertyType}) em ${region}.\n\n• Orçamento: ${form.budget}\n• Quartos: ${form.bedrooms}\n• Suítes: ${form.suites}\n• Garagem: ${form.garage}\n• Diferenciais: ${features}${form.notes.trim() ? `\n• Observações: \"${form.notes.trim()}\"` : ""}`;
+  let message = `Olá, Alyne Crisóstomo! ${name ? `Meu nome é ${name}. ` : ""}Preenchi a Busca Guiada no site e gostaria de atendimento para ${form.purpose.toLowerCase()} (${form.propertyType}) em ${region}.\n\n• Orçamento: ${form.budget}\n• Quartos: ${form.bedrooms}\n• Suítes: ${form.suites}\n• Garagem: ${form.garage}\n• Diferenciais: ${features}${form.notes.trim() ? `\n• Observações: "${form.notes.trim()}"` : ""}`;
+
+  const recommended = properties.filter(p => {
+      if (!isCatalogProperty(p)) return false;
+      if (form.purpose === "Comprar Imóvel" && p.purpose !== "venda") return false;
+      if (form.purpose === "Alugar Imóvel" && p.purpose !== "locacao") return false;
+
+      let match = true;
+      if (form.propertyType && p.type && !p.type.toLowerCase().includes(form.propertyType.split(' ')[0].toLowerCase())) match = false;
+      if (form.region !== "Outro bairro" && p.neighborhood && !p.neighborhood.includes(form.region)) match = false;
+
+      return match;
+  }).slice(0, 3);
+
+  if (recommended.length > 0) {
+      message += "\n\n• Opções que encontrei para você:\n";
+      recommended.forEach(p => {
+          message += `- https://${window.location.host}/#/imovel/${p.slug}\n`;
+      });
+  }
+
+  return message;
 }
 
 function ChoiceCard({ selected, title, description, onClick, compact = false }) {
