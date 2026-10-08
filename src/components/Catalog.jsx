@@ -299,6 +299,9 @@ export default function Catalog({ properties, favorites, onFavorite, query }) {
                   <a className="button button-primary" href={whatsappFor()} target="_blank" rel="noreferrer">
                     <Icon name="whatsapp" size={18} /> Falar no WhatsApp
                   </a>
+                  <button className="button button-outline" type="button" onClick={() => navigate("#/")}>
+                    Voltar ao início
+                  </button>
                 </div>
               </div>
             )}
